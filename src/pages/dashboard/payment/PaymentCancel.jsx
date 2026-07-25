@@ -12,7 +12,7 @@ const PaymentCancel = () => {
 
   useEffect(() => {
     const cancelOrder = async () => {
-      const orderCode = searchParams.get('orderCode');
+      const orderCode = searchParams.get('orderCode') || searchParams.get('code') || searchParams.get('id');
       
       if (!orderCode) {
         setLoading(false);

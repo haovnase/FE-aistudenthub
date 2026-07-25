@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Loader2, FileText, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, FileText, ArrowRight, RefreshCw } from 'lucide-react';
 import Button from '../../../components/Button/Button';
 import paymentService from '../../../services/payment.service';
 import './Payment.css';
@@ -12,31 +12,43 @@ const PaymentSuccess = () => {
   const [orderDetail, setOrderDetail] = useState(null);
   const [error, setError] = useState('');
 
+  const verifyPayment = async () => {
+    setLoading(true);
+    setError('');
+
+    const orderCode = searchParams.get('orderCode') || searchParams.get('code') || searchParams.get('id');
+    const isCancelled = searchParams.get('cancel') === 'true' || searchParams.get('status') === 'CANCELLED';
+
+    if (isCancelled) {
+      setError('Giao dịch đã bị hủy bởi người dùng.');
+      setLoading(false);
+      return;
+    }
+    
+    if (!orderCode) {
+      setError('Không tìm thấy mã đơn hàng.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await paymentService.getPaymentDetail(orderCode);
+      if (data && data.status === 'PAID') {
+        setOrderDetail(data);
+      } else if (data && data.status === 'PENDING') {
+        setError('Hệ thống đang xử lý giao dịch. Vui lòng chờ ít phút hoặc nhấn thử lại.');
+      } else {
+        setError('Thanh toán chưa hoàn tất hoặc giao dịch bị lỗi.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Đã xảy ra lỗi khi kiểm tra giao dịch.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const verifyPayment = async () => {
-      const orderCode = searchParams.get('orderCode');
-      
-      if (!orderCode) {
-        setError('Không tìm thấy mã đơn hàng.');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const data = await paymentService.getPaymentDetail(orderCode);
-        if (data && data.status === 'PAID') {
-          setOrderDetail(data);
-        } else {
-          setError('Thanh toán chưa hoàn tất hoặc giao dịch bị lỗi.');
-        }
-      } catch (err) {
-        console.error(err);
-        setError('Đã xảy ra lỗi khi kiểm tra giao dịch.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     verifyPayment();
   }, [searchParams]);
 
@@ -51,14 +63,20 @@ const PaymentSuccess = () => {
           </div>
         ) : error ? (
           <div className="text-center py-5">
-            <div className="result-icon-wrapper cancel">
-              <CheckCircle2 size={40} />
+            <div className="result-icon-wrapper cancel mb-3" style={{ color: 'var(--error-600)', backgroundColor: 'var(--error-50)', display: 'inline-flex', padding: '16px', borderRadius: '50%' }}>
+              <XCircle size={48} />
             </div>
-            <h2 className="mb-3 text-danger-600">Xác thực thất bại</h2>
+            <h2 className="mb-3" style={{ color: 'var(--error-600)' }}>Xác thực chưa hoàn tất</h2>
             <p className="text-neutral-600 mb-4">{error}</p>
-            <Button onClick={() => navigate('/dashboard/payment')} variant="primary">
-              Quay lại trang Nạp tiền
-            </Button>
+            <div className="d-flex gap-3 justify-content-center">
+              <Button onClick={verifyPayment} variant="outline">
+                <RefreshCw size={18} className="mr-2" style={{ marginRight: '6px' }} />
+                Thử kiểm tra lại
+              </Button>
+              <Button onClick={() => navigate('/dashboard/payment')} variant="primary">
+                Trang Nạp tiền
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="text-center py-4">
@@ -87,12 +105,12 @@ const PaymentSuccess = () => {
 
             <div className="d-flex gap-3 justify-content-center">
               <Button onClick={() => navigate('/dashboard/payment/history')} variant="outline">
-                <FileText size={18} className="mr-2" />
+                <FileText size={18} className="mr-2" style={{ marginRight: '6px' }} />
                 Lịch sử nạp
               </Button>
               <Button onClick={() => navigate('/dashboard')} variant="primary">
                 Trở về Trang chủ
-                <ArrowRight size={18} className="ml-2" />
+                <ArrowRight size={18} className="ml-2" style={{ marginLeft: '6px' }} />
               </Button>
             </div>
           </div>
@@ -103,3 +121,4 @@ const PaymentSuccess = () => {
 };
 
 export default PaymentSuccess;
+
