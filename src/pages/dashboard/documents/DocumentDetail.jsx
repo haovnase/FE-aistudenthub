@@ -184,11 +184,7 @@ const DocumentDetail = () => {
             <ArrowLeft size={16} style={{ marginRight: '4px' }} /> Quay lại
           </Button>
           <h2 className="preview-title" title={doc.fileName}>{doc.fileName}</h2>
-          <div className="preview-actions">
-            <Button variant="outline" onClick={handleDownload}>
-              <Download size={16} style={{ marginRight: '6px' }} /> Tải xuống
-            </Button>
-          </div>
+
         </div>
         
         <div className="preview-content">
