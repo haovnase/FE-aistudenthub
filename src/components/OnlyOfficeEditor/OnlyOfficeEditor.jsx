@@ -6,8 +6,10 @@ const OnlyOfficeEditor = ({ documentId }) => {
   const [error, setError] = useState(null);
   const editorRef = useRef(null);
   const containerId = `onlyoffice-editor-${documentId}`;
-
   useEffect(() => {
+    if (!documentId || documentId === 'undefined') {
+      return;
+    }
     let isMounted = true;
     const initEditor = async () => {
       try {

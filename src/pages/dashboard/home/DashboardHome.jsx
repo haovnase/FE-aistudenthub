@@ -49,9 +49,16 @@ const DashboardHome = () => {
       let others = 0;
 
       docs.forEach(doc => {
-        if (doc.documentType === 'PDF') pdfs++;
-        else if (doc.documentType === 'IMAGE') images++;
-        else others++;
+        const mimeType = (doc.fileType || '').toLowerCase();
+        const extension = (doc.fileName || '').split('.').pop().toLowerCase();
+        
+        if (mimeType.includes('pdf') || extension === 'pdf') {
+          pdfs++;
+        } else if (mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) {
+          images++;
+        } else {
+          others++;
+        }
       });
 
       setStats({
@@ -73,20 +80,30 @@ const DashboardHome = () => {
     }
   };
 
-  const getDocIcon = (type) => {
-    switch (type) {
-      case 'PDF': return <FileText size={20} />;
-      case 'IMAGE': return <Image size={20} />;
-      default: return <FileOutput size={20} />;
+  const getDocIcon = (doc) => {
+    const mimeType = (doc.fileType || '').toLowerCase();
+    const extension = (doc.fileName || '').split('.').pop().toLowerCase();
+    
+    if (mimeType.includes('pdf') || extension === 'pdf') {
+      return <FileText size={20} />;
     }
+    if (mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) {
+      return <Image size={20} />;
+    }
+    return <FileOutput size={20} />;
   };
 
-  const getDocIconClass = (type) => {
-    switch (type) {
-      case 'PDF': return 'pdf';
-      case 'IMAGE': return 'image';
-      default: return 'word';
+  const getDocIconClass = (doc) => {
+    const mimeType = (doc.fileType || '').toLowerCase();
+    const extension = (doc.fileName || '').split('.').pop().toLowerCase();
+    
+    if (mimeType.includes('pdf') || extension === 'pdf') {
+      return 'pdf';
     }
+    if (mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) {
+      return 'image';
+    }
+    return 'word';
   };
 
   return (
@@ -173,8 +190,8 @@ const DashboardHome = () => {
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <div className={`recent-doc-icon ${getDocIconClass(doc.documentType)}`} style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {getDocIcon(doc.documentType)}
+                    <div className={`recent-doc-icon ${getDocIconClass(doc)}`} style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {getDocIcon(doc)}
                     </div>
                     <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--neutral-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '190px' }} title={doc.title}>
                       {doc.title}
@@ -222,8 +239,8 @@ const DashboardHome = () => {
               recentDocs.map(doc => (
                 <Link to={`/dashboard/documents/${doc.id}`} className="recent-doc-item" key={doc.id}>
                   <div className="recent-doc-main">
-                    <div className={`recent-doc-icon ${getDocIconClass(doc.documentType)}`}>
-                      {getDocIcon(doc.documentType)}
+                    <div className={`recent-doc-icon ${getDocIconClass(doc)}`}>
+                      {getDocIcon(doc)}
                     </div>
                     <div className="recent-doc-details">
                       <h4>{doc.title}</h4>
