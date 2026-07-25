@@ -5,7 +5,7 @@ import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
 import { 
   FileText, Folder, Image, FileOutput, 
-  Upload, MessageSquare, Plus, Clock, FileWarning, Globe, User
+  Upload, MessageSquare, Plus, Clock, FileWarning, Globe, User, Crown
 } from 'lucide-react';
 import './DashboardHome.css';
 
@@ -109,7 +109,10 @@ const DashboardHome = () => {
   return (
     <div className="dashboard-home-wrapper">
       <div className="welcome-section">
-        <h1>Chào mừng trở lại, {user?.fullName || 'bạn'}! 👋</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          Chào mừng trở lại, {user?.fullName || 'bạn'}! 👋
+          {user?.isPremium && <Crown size={26} color="#eab308" fill="#eab308" title="Tài khoản Premium" style={{ filter: 'drop-shadow(0 2px 4px rgba(234,179,8,0.2))' }} />}
+        </h1>
         <p>Dưới đây là tổng quan về các hoạt động học tập gần đây và kho tài liệu công cộng.</p>
       </div>
 

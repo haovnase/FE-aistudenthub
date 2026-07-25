@@ -173,8 +173,6 @@ const DocumentDetail = () => {
     }
   };
 
-  const isEditable = doc?.fileName && /\.(doc|docx|xls|xlsx|ppt|pptx|csv)$/i.test(doc.fileName);
-
   if (loading) return <div style={{ padding: '4rem', textAlign: 'center' }}>Đang tải tài liệu...</div>;
   if (error || !doc) return <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--error-600)' }}>{error}</div>;
 
@@ -269,16 +267,6 @@ const DocumentDetail = () => {
           <Button variant="primary" style={{ width: '100%', backgroundColor: 'var(--primary-600)', color: 'white', marginBottom: '8px' }} onClick={() => navigate('/dashboard/chat', { state: { documentId: doc.id } })}>
             <MessageSquare size={16} style={{ marginRight: '6px' }} /> Trò chuyện với Tài liệu này
           </Button>
-          
-          {isEditable ? (
-            <Button variant="outline" style={{ width: '100%', marginBottom: '8px', backgroundColor: 'var(--primary-50)', borderColor: 'var(--primary-300)', color: 'var(--primary-700)' }} onClick={handleDirectEdit} isLoading={isConfigLoading}>
-              <Edit3 size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Trực tiếp (OnlyOffice)
-            </Button>
-          ) : (
-            <Button variant="outline" style={{ width: '100%', marginBottom: '8px' }} onClick={() => setIsEditModalOpen(true)}>
-              <Edit3 size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Thông tin Trực tiếp
-            </Button>
-          )}
 
           <Button variant="outline" style={{ width: '100%' }} onClick={() => setIsEditModalOpen(true)}>
             <Edit size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Thông tin
