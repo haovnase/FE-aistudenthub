@@ -18,7 +18,7 @@ const OnlyOfficeEditor = ({ documentId }) => {
         const configData = await documentService.getOnlyOfficeConfig(documentId);
         if (!isMounted || !configData) return;
 
-        const { docserviceUrl, token, documentType, document, editorConfig } = configData;
+        const { docserviceUrl, token, documentType, document: onlyOfficeDoc, editorConfig } = configData;
 
         // 2. Load động file script api.js của OnlyOffice từ VPS
         const loadScript = () => {
@@ -60,7 +60,7 @@ const OnlyOfficeEditor = ({ documentId }) => {
             width: '100%',
             height: '100%',
             documentType: documentType || 'word',
-            document: document,
+            document: onlyOfficeDoc,
             editorConfig: editorConfig,
             token: token
           };
