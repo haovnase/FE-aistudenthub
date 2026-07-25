@@ -202,15 +202,16 @@ const DocumentDetail = () => {
             </div>
           ) : previewData?.previewMode === 'PDF' && fileUrl ? (
             <iframe src={`${fileUrl}#toolbar=0`} className="pdf-iframe" title="PDF Preview" />
-          ) : previewData?.previewMode === 'OFFICE' && previewData?.previewUrl ? (
-            <iframe 
-              src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewData.previewUrl)}`} 
-              className="pdf-iframe" 
-              title="Office Preview" 
-            />
+          ) : previewData?.previewMode === 'OFFICE' ? (
+            <OnlyOfficeEditor documentId={id} />
           ) : previewData?.previewMode === 'TEXT' && previewData?.textContent ? (
-            <div style={{ padding: '2rem', width: '100%', height: '100%', overflowY: 'auto', backgroundColor: '#fff', color: '#333', textAlign: 'left', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-              {previewData.textContent}
+            <div style={{ padding: '1.5rem', width: '100%', height: '100%', overflowY: 'auto', backgroundColor: '#fff', color: '#333', textAlign: 'left', fontFamily: 'monospace', whiteSpace: 'pre-wrap', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--neutral-200)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--neutral-600)' }}>Chế độ xem văn bản</span>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {previewData.textContent}
+              </div>
             </div>
           ) : (
             <div style={{ color: 'var(--neutral-400)', textAlign: 'center', padding: '2rem' }}>
@@ -269,16 +270,20 @@ const DocumentDetail = () => {
             <MessageSquare size={16} style={{ marginRight: '6px' }} /> Trò chuyện với Tài liệu này
           </Button>
           
-          {isEditable && (
-            <Button variant="outline" style={{ width: '100%', marginBottom: '8px' }} onClick={handleDirectEdit} isLoading={isConfigLoading}>
-              <Edit3 size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Trực tiếp
+          {isEditable ? (
+            <Button variant="outline" style={{ width: '100%', marginBottom: '8px', backgroundColor: 'var(--primary-50)', borderColor: 'var(--primary-300)', color: 'var(--primary-700)' }} onClick={handleDirectEdit} isLoading={isConfigLoading}>
+              <Edit3 size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Trực tiếp (OnlyOffice)
+            </Button>
+          ) : (
+            <Button variant="outline" style={{ width: '100%', marginBottom: '8px' }} onClick={() => setIsEditModalOpen(true)}>
+              <Edit3 size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Thông tin Trực tiếp
             </Button>
           )}
 
           <Button variant="outline" style={{ width: '100%' }} onClick={() => setIsEditModalOpen(true)}>
             <Edit size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Thông tin
           </Button>
-          <Button variant="outline" style={{ width: '100%', borderColor: 'var(--error-200)', color: 'var(--error-600)' }} onClick={() => setIsDeleteModalOpen(true)} isLoading={isDeleting}>
+          <Button variant="outline" style={{ width: '100%', borderColor: 'var(--error-200)', color: 'var(--error-600)', marginTop: '8px' }} onClick={() => setIsDeleteModalOpen(true)} isLoading={isDeleting}>
             <Trash2 size={16} style={{ marginRight: '6px' }} /> Xóa Tài liệu
           </Button>
         </div>

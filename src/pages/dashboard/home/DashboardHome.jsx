@@ -5,7 +5,7 @@ import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
 import { 
   FileText, Folder, Image, FileOutput, 
-  Upload, MessageSquare, Plus, Clock, FileWarning
+  Upload, MessageSquare, Plus, Clock, FileWarning, Globe, User
 } from 'lucide-react';
 import './DashboardHome.css';
 
@@ -19,6 +19,7 @@ const DashboardHome = () => {
     otherCount: 0
   });
   const [recentDocs, setRecentDocs] = useState([]);
+  const [publicDocs, setPublicDocs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,14 +29,19 @@ const DashboardHome = () => {
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      // Fetch documents and folders
-      const [docsResponse, foldersResponse] = await Promise.all([
+      // Fetch documents, folders, and public documents
+      const [docsResponse, foldersResponse, publicResponse] = await Promise.all([
         documentService.getMyDocuments(),
-        folderService.getFolders()
+        folderService.getFolders(),
+        documentService.getPublicDocuments({ page: 0, size: 6 }).catch(() => null)
       ]);
 
       const docs = docsResponse || [];
       const folders = foldersResponse || [];
+
+      if (publicResponse && publicResponse.content) {
+        setPublicDocs(publicResponse.content);
+      }
 
       // Calculate stats
       let pdfs = 0;
@@ -56,7 +62,7 @@ const DashboardHome = () => {
         otherCount: others
       });
 
-      // Get 5 most recent documents (assuming they are returned chronologically, or we sort them)
+      // Get 5 most recent documents
       const sortedDocs = [...docs].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setRecentDocs(sortedDocs.slice(0, 5));
 
@@ -87,7 +93,7 @@ const DashboardHome = () => {
     <div className="dashboard-home-wrapper">
       <div className="welcome-section">
         <h1>Chào mừng trở lại, {user?.fullName || 'bạn'}! 👋</h1>
-        <p>Dưới đây là tổng quan về các hoạt động học tập gần đây và tài liệu đã tải lên của bạn.</p>
+        <p>Dưới đây là tổng quan về các hoạt động học tập gần đây và kho tài liệu công cộng.</p>
       </div>
 
       <div className="stats-grid">
@@ -132,11 +138,77 @@ const DashboardHome = () => {
         </div>
       </div>
 
+      {/* Public Documents Section */}
+      <div className="dashboard-section glass-card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+        <div className="dashboard-section-header" style={{ marginBottom: '1.25rem' }}>
+          <div className="dashboard-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem', fontWeight: 600 }}>
+            <Globe size={22} color="var(--primary-600)" /> Tài liệu Cộng đồng (Public)
+          </div>
+          <Link to="/dashboard/my" style={{ fontSize: '0.875rem', color: 'var(--primary-600)', textDecoration: 'none', fontWeight: 500 }}>
+            Khám phá thêm
+          </Link>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+          {isLoading ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)', gridColumn: '1/-1' }}>Đang tải tài liệu public...</div>
+          ) : publicDocs.length > 0 ? (
+            publicDocs.map(doc => (
+              <Link 
+                to={`/dashboard/documents/${doc.id}`} 
+                key={doc.id}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '1.25rem',
+                  borderRadius: '12px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--neutral-200)',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <div className={`recent-doc-icon ${getDocIconClass(doc.documentType)}`} style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {getDocIcon(doc.documentType)}
+                    </div>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--neutral-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '190px' }} title={doc.title}>
+                      {doc.title}
+                    </h4>
+                  </div>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--neutral-500)' }}>
+                    {doc.subject || 'Môn học khác'} • {doc.documentType}
+                  </p>
+                </div>
+
+                <div style={{ paddingTop: '8px', borderTop: '1px solid var(--neutral-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--primary-700)', fontWeight: 500, backgroundColor: 'var(--primary-50)', padding: '4px 8px', borderRadius: '6px' }}>
+                    <User size={14} />
+                    <span>{doc.ownerName || 'Sinh viên'}</span>
+                  </div>
+                  <span style={{ fontSize: '12px', color: 'var(--neutral-400)' }}>
+                    {doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : ''}
+                  </span>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)', gridColumn: '1/-1' }}>
+              Chưa có tài liệu công khai nào.
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="dashboard-content-grid">
         <div className="dashboard-section">
           <div className="dashboard-section-header">
             <div className="dashboard-section-title">
-              <Clock size={20} /> Tài liệu tải lên gần đây
+              <Clock size={20} /> Tài liệu của tôi gần đây
             </div>
             <Link to="/dashboard/my" style={{ fontSize: '0.875rem', color: 'var(--primary-600)', textDecoration: 'none', fontWeight: 500 }}>
               Xem tất cả
@@ -219,3 +291,4 @@ const DashboardHome = () => {
 };
 
 export default DashboardHome;
+

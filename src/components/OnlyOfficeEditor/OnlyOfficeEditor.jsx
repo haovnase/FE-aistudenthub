@@ -1,115 +1,126 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
-import './OnlyOfficeEditor.css';
+import documentService from '../../services/document.service';
 
-const OnlyOfficeEditor = ({ configData, onClose }) => {
-  const editorContainerRef = useRef(null);
-  const docEditorRef = useRef(null);
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-  const [loadError, setLoadError] = useState('');
-
-  useEffect(() => {
-    if (!configData || !configData.docserviceUrl) {
-      setLoadError('Dữ liệu cấu hình OnlyOffice không hợp lệ.');
-      return;
-    }
-
-    // Tải script API của OnlyOffice
-    const scriptUrl = `${configData.docserviceUrl}/web-apps/apps/api/documents/api.js`;
-    
-    // Kiểm tra xem script đã được tải chưa
-    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
-    
-    if (existingScript) {
-      setIsScriptLoaded(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = scriptUrl;
-    script.async = true;
-    script.onload = () => setIsScriptLoaded(true);
-    script.onerror = () => setLoadError('Không thể tải bộ soạn thảo OnlyOffice. Vui lòng kiểm tra lại kết nối mạng hoặc server.');
-    
-    document.body.appendChild(script);
-
-    return () => {
-      // Cleanup script khi unmount (Tùy chọn)
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, [configData]);
+const OnlyOfficeEditor = ({ documentId }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const editorRef = useRef(null);
+  const containerId = `onlyoffice-editor-${documentId}`;
 
   useEffect(() => {
-    // Khởi tạo Editor khi script đã tải xong
-    if (isScriptLoaded && editorContainerRef.current && window.DocsAPI && !docEditorRef.current) {
+    let isMounted = true;
+    const initEditor = async () => {
       try {
-        const config = {
-          document: configData.document,
-          documentType: configData.documentType,
-          editorConfig: {
-            ...configData.editorConfig,
-            customization: {
-              ...configData.editorConfig.customization,
-              forcesave: true, // Cho phép lưu ép buộc
-              compact: false,
-              toolbarNoTabs: false
+        setLoading(true);
+        setError(null);
+
+        // 1. Lấy cấu hình và token JWT từ Backend
+        const configData = await documentService.getOnlyOfficeConfig(documentId);
+        if (!isMounted || !configData) return;
+
+        const { docserviceUrl, token, documentType, document, editorConfig } = configData;
+
+        // 2. Load động file script api.js của OnlyOffice từ VPS
+        const loadScript = () => {
+          return new Promise((resolve, reject) => {
+            if (window.DocsAPI) {
+              resolve();
+              return;
             }
-          },
-          token: configData.token
+            const existingScript = document.getElementById('onlyoffice-api-script');
+            if (existingScript) {
+              existingScript.onload = () => resolve();
+              existingScript.onerror = () => reject(new Error('Không thể tải script OnlyOffice API'));
+              return;
+            }
+            const script = document.createElement('script');
+            script.id = 'onlyoffice-api-script';
+            script.src = docserviceUrl;
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Không thể kết nối tới server OnlyOffice VPS'));
+            document.head.appendChild(script);
+          });
         };
 
-        // Khởi tạo OnlyOffice
-        docEditorRef.current = new window.DocsAPI.DocEditor("onlyoffice-placeholder", config);
-      } catch (err) {
-        console.error("Lỗi khi khởi tạo OnlyOffice:", err);
-        setLoadError('Đã xảy ra lỗi khi khởi tạo giao diện soạn thảo.');
-      }
-    }
+        await loadScript();
+        if (!isMounted) return;
 
-    return () => {
-      if (docEditorRef.current) {
-        docEditorRef.current.destroyEditor();
-        docEditorRef.current = null;
+        // 3. Khởi tạo trình soạn thảo OnlyOffice
+        if (window.DocsAPI && window.DocsAPI.DocEditor) {
+          if (editorRef.current && typeof editorRef.current.destroyEditor === 'function') {
+            try {
+              editorRef.current.destroyEditor();
+            } catch (e) {
+              console.warn('Destroying previous instance failed', e);
+            }
+          }
+          const editorProps = {
+            type: 'desktop',
+            width: '100%',
+            height: '100%',
+            documentType: documentType || 'word',
+            document: document,
+            editorConfig: editorConfig,
+            token: token
+          };
+          editorRef.current = new window.DocsAPI.DocEditor(containerId, editorProps);
+          setLoading(false);
+        } else {
+          throw new Error('DocsAPI chưa sẵn sàng');
+        }
+      } catch (err) {
+        console.error('OnlyOffice init error:', err);
+        if (isMounted) {
+          setError(err.message || 'Không thể tải bộ soạn thảo OnlyOffice');
+          setLoading(false);
+        }
       }
     };
-  }, [isScriptLoaded, configData]);
+
+    initEditor();
+
+    return () => {
+      isMounted = false;
+      if (editorRef.current && typeof editorRef.current.destroyEditor === 'function') {
+        try {
+          editorRef.current.destroyEditor();
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, [documentId]);
+
+  if (error) {
+    return (
+      <div style={{
+        padding: '2rem',
+        textAlign: 'center',
+        color: '#dc2626',
+        backgroundColor: '#fef2f2',
+        borderRadius: '8px',
+        margin: '1rem'
+      }}>
+        <h4>⚠️ Lỗi Tải Trình Soạn Thảo OnlyOffice</h4>
+        <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#991b1b' }}>{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="onlyoffice-overlay">
-      <div className="onlyoffice-header">
-        <div className="document-title">
-          {configData?.document?.title || 'Đang tải tài liệu...'}
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '700px' }}>
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          backgroundColor: '#ffffff', zIndex: 10, color: '#2563eb', fontWeight: 500
+        }}>
+          Đang kết nối tới trình soạn thảo OnlyOffice VPS...
         </div>
-        <button className="onlyoffice-close-btn" onClick={onClose} title="Đóng cửa sổ">
-          <X size={24} />
-          <span>Đóng</span>
-        </button>
-      </div>
-
-      <div className="onlyoffice-body">
-        {loadError ? (
-          <div className="onlyoffice-error">
-            <h3>Lỗi Tải Trình Soạn Thảo</h3>
-            <p>{loadError}</p>
-            <button className="btn btn-primary mt-3" onClick={onClose}>Quay lại</button>
-          </div>
-        ) : !isScriptLoaded ? (
-          <div className="onlyoffice-loading">
-            <Loader2 size={48} className="animate-spin text-primary-500 mb-3" />
-            <p>Đang tải trình soạn thảo văn bản trực tiếp...</p>
-            <p className="text-neutral-400" style={{ fontSize: '0.85rem' }}>Vui lòng đợi trong giây lát</p>
-          </div>
-        ) : null}
-        
-        {/* Placeholder container cho OnlyOffice */}
-        <div 
-          id="onlyoffice-placeholder" 
-          ref={editorContainerRef} 
-          style={{ width: '100%', height: '100%', display: isScriptLoaded && !loadError ? 'block' : 'none' }}
-        ></div>
-      </div>
+      )}
+      <div id={containerId} style={{ width: '100%', height: '100%', minHeight: '700px' }} />
     </div>
   );
 };

@@ -61,6 +61,14 @@ const documentService = {
     return response.data?.data;
   },
 
+  getPublicDocuments: async (params) => {
+    const { keyword, subject, major, page = 0, size = 6 } = params || {};
+    const response = await api.get('/documents/public', {
+      params: { keyword, subject, major, page, size }
+    });
+    return response.data?.data;
+  },
+
   getOnlyOfficeConfig: async (id) => {
     const response = await api.get(`/documents/${id}/onlyoffice-config`);
     return response.data?.data;

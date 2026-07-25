@@ -12,7 +12,7 @@ const UploadDocument = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [folders, setFolders] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -54,32 +54,57 @@ const UploadDocument = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileSelect(Array.from(e.dataTransfer.files));
     }
   };
 
-  const handleFileSelect = (selectedFile) => {
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      setFormErrors(prev => ({ ...prev, file: 'Kích thước tệp vượt quá giới hạn 10MB. Vui lòng chọn tệp nhỏ hơn.' }));
-      setFile(null);
-      return;
+  const handleFileSelect = (selectedFiles) => {
+    const validFiles = [];
+    const errorMsgs = [];
+
+    selectedFiles.forEach(f => {
+      if (f.size > 10 * 1024 * 1024) {
+        errorMsgs.push(`Tệp "${f.name}" vượt quá giới hạn 10MB. Vui lòng chọn tệp nhỏ hơn.`);
+      } else {
+        validFiles.push(f);
+      }
+    });
+
+    if (errorMsgs.length > 0) {
+      setFormErrors(prev => ({ ...prev, file: errorMsgs.join('\n') }));
+    } else {
+      setFormErrors(prev => ({ ...prev, file: null }));
     }
 
-    setFile(selectedFile);
-    if (!formData.title) {
-      const nameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
-      setFormData(prev => ({ ...prev, title: nameWithoutExt }));
+    if (validFiles.length > 0) {
+      setFiles(prev => {
+        const nextFiles = [...prev, ...validFiles];
+        if (nextFiles.length === 1 && !formData.title) {
+          const nameWithoutExt = nextFiles[0].name.replace(/\.[^/.]+$/, "");
+          setFormData(prevForm => ({ ...prevForm, title: nameWithoutExt }));
+        }
+        return nextFiles;
+      });
+      setApiError('');
     }
-    setFormErrors(prev => ({ ...prev, file: null }));
-    setApiError('');
   };
 
-  const handleRemoveFile = () => {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handleRemoveFile = (indexToRemove) => {
+    setFiles(prev => {
+      const nextFiles = prev.filter((_, idx) => idx !== indexToRemove);
+      if (nextFiles.length === 0) {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else if (nextFiles.length === 1) {
+        if (!formData.title) {
+          const nameWithoutExt = nextFiles[0].name.replace(/\.[^/.]+$/, "");
+          setFormData(prevForm => ({ ...prevForm, title: nameWithoutExt }));
+        }
+      }
+      return nextFiles;
+    });
   };
 
   const formatFileSize = (bytes) => {
@@ -94,12 +119,15 @@ const UploadDocument = () => {
     e.preventDefault();
     setApiError('');
     
-    let errors = validateForm(formData, { 
-      title: [ruleRequired('Title is required')] 
-    });
+    let errors = {};
+    if (files.length === 1) {
+      errors = validateForm(formData, { 
+        title: [ruleRequired('Tiêu đề là bắt buộc')] 
+      });
+    }
 
-    if (!file) {
-      errors.file = 'Please select a file to upload';
+    if (files.length === 0) {
+      errors.file = 'Vui lòng chọn ít nhất một tệp để tải lên';
     }
 
     setFormErrors(errors);
@@ -107,13 +135,18 @@ const UploadDocument = () => {
 
     setIsSubmitting(true);
     try {
-      const requestData = {
-        ...formData,
-        folderId: formData.folderId || null
-      };
+      const uploadPromises = files.map(f => {
+        const title = files.length === 1 ? formData.title : f.name.replace(/\.[^/.]+$/, "");
+        const requestData = {
+          ...formData,
+          title: title,
+          folderId: formData.folderId || null
+        };
+        return documentService.upload(f, requestData);
+      });
 
-      await documentService.upload(file, requestData);
-      navigate('/dashboard/my', { state: { toastMessage: 'Document uploaded successfully!' } });
+      await Promise.all(uploadPromises);
+      navigate('/dashboard/my', { state: { toastMessage: `Đã tải lên thành công ${files.length} tài liệu!` } });
     } catch (err) {
       setApiError(err.response?.data?.message || 'Tải lên tài liệu thất bại. Vui lòng thử lại.');
       setIsSubmitting(false);
@@ -128,7 +161,7 @@ const UploadDocument = () => {
       </div>
 
       <div className="upload-card">
-        {!file ? (
+        {files.length === 0 ? (
           <>
             <div 
               className={`dropzone ${isDragging ? 'active' : ''}`}
@@ -140,37 +173,66 @@ const UploadDocument = () => {
               <div className="dropzone-icon">
                 <UploadCloud size={32} />
               </div>
-              <p className="dropzone-text">Nhấp hoặc kéo tệp vào khu vực này để tải lên</p>
-              <p className="dropzone-subtext">Hỗ trợ một tệp PDF, DOCX hoặc PPTX. Kích thước tối đa 10MB.</p>
+              <p className="dropzone-text">Nhấp hoặc kéo các tệp vào khu vực này để tải lên</p>
+              <p className="dropzone-subtext">Hỗ trợ các tệp PDF, DOCX hoặc PPTX. Kích thước tối đa 10MB mỗi tệp.</p>
               <input 
                 type="file" 
                 ref={fileInputRef} 
                 style={{ display: 'none' }} 
+                multiple
                 onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    handleFileSelect(e.target.files[0]);
+                  if (e.target.files && e.target.files.length > 0) {
+                    handleFileSelect(Array.from(e.target.files));
                   }
                 }}
               />
             </div>
             {formErrors.file && (
-              <p style={{ color: 'var(--error-500)', fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
+              <p style={{ color: 'var(--error-500)', fontSize: '13px', marginTop: '8px', textAlign: 'center', whiteSpace: 'pre-line' }}>
                 {formErrors.file}
               </p>
             )}
           </>
         ) : (
-          <div className="file-preview">
-            <div className="file-preview-info">
-              <FileIcon size={32} className="file-preview-icon" />
-              <div>
-                <p className="file-name">{file.name}</p>
-                <p className="file-size">{formatFileSize(file.size)}</p>
-              </div>
+          <div className="files-preview-container">
+            <div className="files-preview-header">
+              <span className="files-count-badge">Đã chọn {files.length} tệp</span>
+              <button type="button" className="btn-add-more" onClick={() => fileInputRef.current?.click()}>
+                + Chọn thêm tệp
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                multiple
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    handleFileSelect(Array.from(e.target.files));
+                  }
+                }}
+              />
             </div>
-            <button className="file-remove-btn" onClick={handleRemoveFile} title="Remove file">
-              <X size={20} />
-            </button>
+            <div className="files-list">
+              {files.map((f, idx) => (
+                <div key={idx} className="file-preview-item">
+                  <div className="file-preview-info">
+                    <FileIcon size={24} className="file-preview-icon" />
+                    <div className="file-details">
+                      <p className="file-name" title={f.name}>{f.name}</p>
+                      <p className="file-size">{formatFileSize(f.size)}</p>
+                    </div>
+                  </div>
+                  <button type="button" className="file-remove-btn" onClick={() => handleRemoveFile(idx)} title="Xóa tệp">
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {formErrors.file && (
+              <p style={{ color: 'var(--error-500)', fontSize: '13px', marginTop: '8px', whiteSpace: 'pre-line' }}>
+                {formErrors.file}
+              </p>
+            )}
           </div>
         )}
 
@@ -182,21 +244,31 @@ const UploadDocument = () => {
         )}
 
         <form className="upload-form" onSubmit={handleSubmit}>
-          <Input 
-            label="Tiêu đề Tài liệu *" 
-            placeholder="VD: Chương 1: Giới thiệu về AI"
-            value={formData.title}
-            onChange={(e) => {
-              setFormData({ ...formData, title: e.target.value });
-              if (formErrors.title) setFormErrors({ ...formErrors, title: null });
-            }}
-            onBlur={(e) => {
-              if (!e.target.value.trim()) {
-                setFormErrors(prev => ({ ...prev, title: 'Tiêu đề là bắt buộc' }));
-              }
-            }}
-            error={formErrors.title}
-          />
+          {files.length <= 1 ? (
+            <Input 
+              label="Tiêu đề Tài liệu *" 
+              placeholder="VD: Chương 1: Giới thiệu về AI"
+              value={formData.title}
+              onChange={(e) => {
+                setFormData({ ...formData, title: e.target.value });
+                if (formErrors.title) setFormErrors({ ...formErrors, title: null });
+              }}
+              onBlur={(e) => {
+                if (!e.target.value.trim()) {
+                  setFormErrors(prev => ({ ...prev, title: 'Tiêu đề là bắt buộc' }));
+                }
+              }}
+              error={formErrors.title}
+            />
+          ) : (
+            <div className="form-group info-alert-box">
+              <label className="form-label">Tiêu đề Tài liệu</label>
+              <div className="info-message">
+                <CheckCircle size={16} className="info-icon" />
+                <span>Bạn đã chọn nhiều tệp. Tên của mỗi tệp (không bao gồm đuôi file) sẽ tự động được sử dụng làm Tiêu đề của tài liệu tương ứng.</span>
+              </div>
+            </div>
+          )}
 
           <Input 
             label="Mô tả" 
@@ -281,7 +353,7 @@ const UploadDocument = () => {
 
           <div className="upload-actions">
             <Button variant="outline" type="button" onClick={() => navigate('/dashboard')}>Hủy</Button>
-            <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting || (!file && !formData.title)}>
+            <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting || (files.length === 0 && !formData.title)}>
               Tải lên Hub
             </Button>
           </div>

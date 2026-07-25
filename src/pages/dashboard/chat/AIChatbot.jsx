@@ -6,6 +6,67 @@ import documentService from '../../../services/document.service';
 import ConfirmDeleteModal from '../../../components/Modal/ConfirmDeleteModal';
 import './AIChatbot.css';
 
+const renderFormattedMessage = (text) => {
+  if (!text) return null;
+  
+  const lines = text.split('\n');
+
+  return lines.map((line, lineIdx) => {
+    const parseLineTokens = (str) => {
+      const parts = [];
+      let lastIdx = 0;
+
+      const regex = /(\*\*\*([^*]+)\*\*\*|\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`)/g;
+      let match;
+
+      while ((match = regex.exec(str)) !== null) {
+        if (match.index > lastIdx) {
+          parts.push(str.substring(lastIdx, match.index));
+        }
+
+        if (match[2]) {
+          parts.push(<strong key={match.index}><em>{match[2]}</em></strong>);
+        } else if (match[3]) {
+          parts.push(<strong key={match.index}>{match[3]}</strong>);
+        } else if (match[4]) {
+          parts.push(<em key={match.index}>{match[4]}</em>);
+        } else if (match[5]) {
+          parts.push(
+            <code key={match.index} style={{ backgroundColor: 'var(--neutral-100)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.9em' }}>
+              {match[5]}
+            </code>
+          );
+        }
+
+        lastIdx = regex.lastIndex;
+      }
+
+      if (lastIdx < str.length) {
+        parts.push(str.substring(lastIdx));
+      }
+
+      return parts.length > 0 ? parts : str;
+    };
+
+    const isBullet = line.trim().startsWith('- ') || line.trim().startsWith('* ');
+    const cleanedLine = isBullet ? line.trim().replace(/^[-*]\s+/, '') : line;
+
+    return (
+      <React.Fragment key={lineIdx}>
+        {isBullet ? (
+          <div style={{ display: 'flex', gap: '8px', marginLeft: '8px', margin: '2px 0' }}>
+            <span style={{ color: 'var(--primary-600)', fontWeight: 'bold' }}>•</span>
+            <span>{parseLineTokens(cleanedLine)}</span>
+          </div>
+        ) : (
+          <span>{parseLineTokens(cleanedLine)}</span>
+        )}
+        {lineIdx < lines.length - 1 && <br />}
+      </React.Fragment>
+    );
+  });
+};
+
 const AIChatbot = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -297,7 +358,7 @@ const AIChatbot = () => {
                 </div>
                 <div>
                   <div className="message-bubble" style={msg.isError ? { backgroundColor: 'var(--error-50)', color: 'var(--error-600)', borderColor: 'var(--error-200)' } : {}}>
-                    {msg.message}
+                    {renderFormattedMessage(msg.message)}
                   </div>
                   <div className="message-time">
                     {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}

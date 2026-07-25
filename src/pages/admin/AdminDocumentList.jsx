@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Search, Trash2, Eye, Download, AlertCircle } from 'lucide-react';
+import { FileText, Search, Trash2, Eye, Download, AlertCircle, Activity, Globe, ListFilter } from 'lucide-react';
 import adminService from '../../services/admin.service';
 import Button from '../../components/Button/Button';
 import ConfirmDeleteModal from '../../components/Modal/ConfirmDeleteModal';
 import Modal from '../../components/Modal/Modal';
+import AdminDocumentPreviewModal from './AdminDocumentPreviewModal';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Activity } from 'lucide-react';
 
 const AdminDocumentList = () => {
   const [documents, setDocuments] = useState([]);
@@ -14,7 +14,10 @@ const AdminDocumentList = () => {
   const [error, setError] = useState('');
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(0);
+  const [activeTab, setActiveTab] = useState('ALL'); // 'ALL' | 'PUBLIC' | 'REVIEW'
+  
   const [deleteDocId, setDeleteDocId] = useState(null);
+  const [previewDoc, setPreviewDoc] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [viewStatusDoc, setViewStatusDoc] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
@@ -43,12 +46,14 @@ const AdminDocumentList = () => {
     fetchDocuments();
   };
 
-  const confirmDelete = async () => {
-    if (!deleteDocId) return;
+  const confirmDelete = async (idToDelete) => {
+    const docId = idToDelete || deleteDocId;
+    if (!docId) return;
     setIsProcessing(true);
     try {
-      await adminService.deleteDocument(deleteDocId);
+      await adminService.deleteDocument(docId);
       setDeleteDocId(null);
+      setPreviewDoc(null);
       fetchDocuments();
     } catch (err) {
       alert('Lỗi xóa tài liệu: ' + (err.response?.data?.message || err.message));
@@ -70,6 +75,16 @@ const AdminDocumentList = () => {
     }
   };
 
+  const filteredDocuments = documents.filter(doc => {
+    if (activeTab === 'PUBLIC') {
+      return doc.visibility === 'PUBLIC';
+    }
+    if (activeTab === 'REVIEW') {
+      return doc.visibility === 'PUBLIC' || doc.processingStatus === 'PENDING';
+    }
+    return true;
+  });
+
   const getFileIcon = (fileType) => {
     return <FileText size={20} color="var(--primary-500)" />;
   };
@@ -77,8 +92,48 @@ const AdminDocumentList = () => {
   return (
     <div className="premium-page-wrapper">
       <div className="page-header">
-        <h1 className="page-title">Kiểm duyệt Tài liệu</h1>
-        <p className="page-description">Quản lý và xóa các tài liệu vi phạm bản quyền hoặc nội dung không phù hợp.</p>
+        <h1 className="page-title">Quản lý & Kiểm duyệt Tài liệu</h1>
+        <p className="page-description">Quản lý danh sách tài liệu Public từ người dùng và kiểm duyệt xem trước nội dung.</p>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <button 
+          onClick={() => setActiveTab('ALL')} 
+          style={{
+            padding: '0.6rem 1.2rem',
+            borderRadius: '8px',
+            border: 'none',
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: activeTab === 'ALL' ? 'var(--primary-600)' : '#ffffff',
+            color: activeTab === 'ALL' ? '#ffffff' : 'var(--neutral-700)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}
+        >
+          <ListFilter size={18} /> Tất cả Tài liệu ({documents.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('PUBLIC')} 
+          style={{
+            padding: '0.6rem 1.2rem',
+            borderRadius: '8px',
+            border: 'none',
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: activeTab === 'PUBLIC' ? 'var(--primary-600)' : '#ffffff',
+            color: activeTab === 'PUBLIC' ? '#ffffff' : 'var(--neutral-700)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}
+        >
+          <Globe size={18} /> Tài liệu Public ({documents.filter(d => d.visibility === 'PUBLIC').length})
+        </button>
       </div>
 
       <div className="dashboard-section glass-card" style={{ padding: '1.5rem' }}>
@@ -112,19 +167,19 @@ const AdminDocumentList = () => {
                 <tr style={{ borderBottom: '2px solid var(--neutral-200)', color: 'var(--neutral-600)' }}>
                   <th style={{ padding: '1rem 0.5rem' }}>Tên tài liệu</th>
                   <th style={{ padding: '1rem 0.5rem' }}>Người đăng</th>
+                  <th style={{ padding: '1rem 0.5rem' }}>Chế độ chia sẻ</th>
                   <th style={{ padding: '1rem 0.5rem' }}>Môn học</th>
                   <th style={{ padding: '1rem 0.5rem' }}>Thời gian</th>
-                  <th style={{ padding: '1rem 0.5rem' }}>Trạng thái xử lý</th>
                   <th style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {documents.length === 0 ? (
+                {filteredDocuments.length === 0 ? (
                   <tr>
                     <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Không tìm thấy tài liệu nào.</td>
                   </tr>
                 ) : (
-                  documents.map(doc => (
+                  filteredDocuments.map(doc => (
                     <tr key={doc.id} style={{ borderBottom: '1px solid var(--neutral-100)' }}>
                       <td style={{ padding: '1rem 0.5rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         {getFileIcon(doc.fileType)}
@@ -133,25 +188,35 @@ const AdminDocumentList = () => {
                         </span>
                       </td>
                       <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.ownerName || 'User'}</td>
+                      <td style={{ padding: '1rem 0.5rem' }}>
+                        <span style={{
+                          padding: '4px 10px',
+                          borderRadius: '12px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          backgroundColor: doc.visibility === 'PUBLIC' ? 'var(--success-50, #ecfdf5)' : 'var(--neutral-100)',
+                          color: doc.visibility === 'PUBLIC' ? 'var(--success-600, #059669)' : 'var(--neutral-600)'
+                        }}>
+                          {doc.visibility === 'PUBLIC' ? 'Public' : 'Private'}
+                        </span>
+                      </td>
                       <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.subject || '-'}</td>
                       <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>
                         {doc.createdAt ? formatDistanceToNow(new Date(doc.createdAt), { addSuffix: true, locale: vi }) : '-'}
                       </td>
-                      <td style={{ padding: '1rem 0.5rem' }}>
-                        {doc.processingStatus === 'COMPLETED' ? (
-                          <span style={{ color: 'var(--success-600)', fontWeight: 500, fontSize: '14px' }}>Hoàn tất</span>
-                        ) : doc.processingStatus === 'FAILED' ? (
-                          <span style={{ color: 'var(--error-600)', fontWeight: 500, fontSize: '14px' }}>Lỗi</span>
-                        ) : (
-                          <span style={{ color: 'var(--warning-600)', fontWeight: 500, fontSize: '14px' }}>Đang xử lý</span>
-                        )}
-                      </td>
                       <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                           <button 
+                            title="Xem trước tài liệu (Admin Preview)"
+                            onClick={() => setPreviewDoc(doc)}
+                            style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--primary-100)', color: 'var(--primary-700)' }}
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button 
                             title="Xem trạng thái xử lý"
                             onClick={() => handleViewStatus(doc)}
-                            style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--primary-50)', color: 'var(--primary-600)' }}
+                            style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--neutral-100)', color: 'var(--neutral-700)' }}
                           >
                             <Activity size={16} />
                           </button>
@@ -173,10 +238,18 @@ const AdminDocumentList = () => {
         )}
       </div>
 
+      {/* Admin Document Preview Modal */}
+      <AdminDocumentPreviewModal 
+        isOpen={!!previewDoc}
+        onClose={() => setPreviewDoc(null)}
+        document={previewDoc}
+        onDelete={(id) => confirmDelete(id)}
+      />
+
       <ConfirmDeleteModal 
         isOpen={!!deleteDocId}
         onClose={() => setDeleteDocId(null)}
-        onConfirm={confirmDelete}
+        onConfirm={() => confirmDelete(deleteDocId)}
         isDeleting={isProcessing}
         title="Xóa Tài liệu Vi phạm"
         message="Cảnh báo: Bạn có chắc chắn muốn xóa vĩnh viễn tài liệu này khỏi hệ thống? Hành động này không thể hoàn tác."
@@ -226,3 +299,4 @@ const AdminDocumentList = () => {
 };
 
 export default AdminDocumentList;
+

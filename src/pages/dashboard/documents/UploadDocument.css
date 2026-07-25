@@ -165,3 +165,126 @@
   padding-top: var(--spacing-6);
   border-top: 1px solid var(--neutral-200);
 }
+
+/* Premium Styles for Multi-file Upload */
+.files-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+  background: white;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.files-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--neutral-100);
+  padding-bottom: var(--spacing-3);
+}
+
+.files-count-badge {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-700);
+  background-color: var(--primary-50);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+.btn-add-more {
+  background: none;
+  border: none;
+  color: var(--primary-600);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.btn-add-more:hover {
+  background-color: var(--primary-50);
+  color: var(--primary-700);
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Custom Scrollbar for premium feel */
+.files-list::-webkit-scrollbar {
+  width: 6px;
+}
+.files-list::-webkit-scrollbar-track {
+  background: var(--neutral-50);
+  border-radius: 4px;
+}
+.files-list::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 4px;
+}
+.files-list::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-400);
+}
+
+.file-preview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3);
+  background-color: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.file-preview-item:hover {
+  border-color: var(--primary-200);
+  background-color: rgba(59, 130, 246, 0.01);
+}
+
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-details .file-name {
+  max-width: 450px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-alert-box {
+  background-color: var(--primary-50);
+  border: 1px solid var(--primary-100);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+}
+
+.info-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  color: var(--primary-800);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.info-icon {
+  color: var(--primary-500);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
