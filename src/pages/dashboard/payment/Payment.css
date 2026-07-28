@@ -99,6 +99,26 @@
   line-height: 1.4;
 }
 
+.package-desc {
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  line-height: 1.5;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.package-features li.disabled {
+  color: var(--neutral-400);
+  opacity: 0.65;
+}
+
+.package-subtext {
+  font-size: 0.8rem;
+  color: var(--neutral-400);
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
 .payment-action-container {
   max-width: 600px;
   margin: 0 auto;

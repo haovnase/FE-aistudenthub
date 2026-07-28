@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, Zap, Crown, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Zap, Crown, CheckCircle2, BookOpen, Check, X } from 'lucide-react';
 import Button from '../../../components/Button/Button';
 import paymentService from '../../../services/payment.service';
 import './Payment.css';
@@ -10,10 +10,21 @@ const PACKAGES = [
     name: 'Gói Cơ bản',
     price: 0,
     priceStr: 'Miễn phí',
-    icon: <CreditCard size={24} className="package-icon" />,
+    icon: <BookOpen size={24} className="package-icon" />,
     color: 'var(--primary-500)',
-    features: ['100 câu hỏi AI / ngày', 'Lưu trữ 50 tài liệu', 'Hỗ trợ cơ bản'],
-    isPopular: false
+    description: 'Dành cho sinh viên mới bắt đầu, muốn trải nghiệm hệ thống quản lý tài liệu AI.',
+    features: [
+      { text: '100 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 50 tài liệu', included: true },
+      { text: 'Tải lên & xem trước tài liệu', included: true },
+      { text: 'Chat AI cơ bản', included: true },
+      { text: 'Phân tích tài liệu PDF nâng cao', included: false },
+      { text: 'Quản lý thư mục', included: false },
+      { text: 'Lưu lịch sử hội thoại AI', included: false }
+    ],
+    isPopular: false,
+    buttonText: 'Đang sử dụng',
+    subText: 'Không cần thẻ tín dụng'
   },
   {
     id: 'pro',
@@ -22,8 +33,19 @@ const PACKAGES = [
     priceStr: '39.000đ',
     icon: <Zap size={24} className="package-icon text-warning" />,
     color: '#eab308',
-    features: ['Không giới hạn AI Chat', 'Lưu trữ 500 tài liệu', 'Phân tích tài liệu PDF', 'Hỗ trợ ưu tiên'],
-    isPopular: true
+    description: 'Dành cho sinh viên học tập chủ động, cần AI hỗ trợ sâu và quản lý tài liệu hiệu quả.',
+    features: [
+      { text: 'Không giới hạn câu hỏi AI', included: true },
+      { text: 'Lưu trữ tối đa 500 tài liệu', included: true },
+      { text: 'Phân tích & trích xuất nội dung PDF', included: true },
+      { text: 'Quản lý thư mục & nhãn', included: true },
+      { text: 'Lưu toàn bộ lịch sử hội thoại AI', included: true },
+      { text: 'Hỏi đáp AI theo từng tài liệu', included: true },
+      { text: 'Ưu tiên kết quả tìm kiếm', included: false }
+    ],
+    isPopular: true,
+    buttonText: 'Chọn gói này',
+    subText: 'Thanh toán qua VietQR - PayOS'
   },
   {
     id: 'premium',
@@ -32,8 +54,19 @@ const PACKAGES = [
     priceStr: '79.000đ',
     icon: <Crown size={24} className="package-icon text-danger" />,
     color: 'var(--danger-500)',
-    features: ['Tất cả tính năng Pro', 'Lưu trữ không giới hạn', 'Ưu tiên kết quả tìm kiếm', 'Lưu lịch sử vĩnh viễn'],
-    isPopular: false
+    description: 'Dành cho sinh viên nghiên cứu chuyên sâu, cần toàn bộ sức mạnh AI không giới hạn.',
+    features: [
+      { text: 'Tất cả tính năng gói Nâng cao', included: true },
+      { text: 'Lưu trữ không giới hạn', included: true },
+      { text: 'Ưu tiên kết quả tìm kiếm', included: true },
+      { text: 'Lưu lịch sử hội thoại vĩnh viễn', included: true },
+      { text: 'Hỗ trợ ưu tiên 24/7', included: true },
+      { text: 'Xuất báo cáo tài liệu', included: true },
+      { text: 'Truy cập sớm tính năng mới', included: true }
+    ],
+    isPopular: false,
+    buttonText: 'Chọn gói này',
+    subText: 'Thanh toán qua VietQR - PayOS'
   }
 ];
 
@@ -49,14 +82,14 @@ const PaymentPackage = () => {
       const returnUrl = `${window.location.origin}/dashboard/payment/success`;
       const cancelUrl = `${window.location.origin}/dashboard/payment/cancel`;
       const description = `Mua ${selectedPkg.name}`;
-      
+
       const response = await paymentService.createPayment(
-        selectedPkg.price, 
-        description, 
-        returnUrl, 
+        selectedPkg.price,
+        description,
+        returnUrl,
         cancelUrl
       );
-      
+
       if (response && response.checkoutUrl) {
         window.location.href = response.checkoutUrl;
       } else {
@@ -83,14 +116,14 @@ const PaymentPackage = () => {
 
       <div className="packages-grid">
         {PACKAGES.map((pkg) => (
-          <div 
-            key={pkg.id} 
+          <div
+            key={pkg.id}
             className={`package-card glass-card ${selectedPkg.id === pkg.id ? 'selected' : ''} ${pkg.isPopular ? 'popular' : ''}`}
             onClick={() => setSelectedPkg(pkg)}
             style={{ '--pkg-color': pkg.color }}
           >
             {pkg.isPopular && <div className="popular-badge">Phổ biến nhất</div>}
-            
+
             <div className="package-header">
               <div className="icon-wrapper" style={{ color: pkg.color, backgroundColor: `${pkg.color}15` }}>
                 {pkg.icon}
@@ -100,25 +133,35 @@ const PaymentPackage = () => {
                 <span className="amount">{pkg.priceStr}</span>
                 <span className="period">/tháng</span>
               </div>
+              <p className="package-desc">{pkg.description}</p>
             </div>
 
             <ul className="package-features">
               {pkg.features.map((feature, idx) => (
-                <li key={idx}>
-                  <CheckCircle2 size={18} color="var(--success-500)" />
-                  <span>{feature}</span>
+                <li key={idx} className={!feature.included ? 'disabled' : ''}>
+                  {feature.included ? (
+                    <Check size={18} color="var(--success-500)" />
+                  ) : (
+                    <X size={18} color="var(--neutral-400)" />
+                  )}
+                  <span>{feature.text}</span>
                 </li>
               ))}
             </ul>
 
             <div className="package-footer">
-              <Button 
-                variant={selectedPkg.id === pkg.id ? 'primary' : 'outline'}
+              <Button
+                variant={pkg.id === 'basic' ? 'outline' : (selectedPkg.id === pkg.id ? 'primary' : 'outline')}
                 className="w-100"
-                onClick={() => setSelectedPkg(pkg)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPkg(pkg);
+                }}
+                disabled={pkg.id === 'basic'}
               >
-                {selectedPkg.id === pkg.id ? 'Đang chọn' : 'Chọn gói này'}
+                {pkg.id === 'basic' ? 'Đang sử dụng' : (selectedPkg.id === pkg.id ? 'Đang chọn' : 'Chọn gói này')}
               </Button>
+              <div className="package-subtext">{pkg.subText}</div>
             </div>
           </div>
         ))}
@@ -127,11 +170,11 @@ const PaymentPackage = () => {
       <div className="payment-action-container glass-card text-center" style={{ marginTop: '3rem' }}>
         <h3 className="mb-2">Bạn đang chọn: <strong>{selectedPkg.name}</strong></h3>
         <p className="text-neutral-500 mb-4">Tổng thanh toán: <strong style={{ color: 'var(--primary-600)', fontSize: '1.25rem' }}>{selectedPkg.priceStr}</strong></p>
-        
-        <Button 
-          variant="primary" 
-          size="lg" 
-          onClick={handlePayment} 
+
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={handlePayment}
           disabled={isProcessing || selectedPkg.price === 0}
           style={{ minWidth: '250px', fontSize: '1.1rem' }}
         >
