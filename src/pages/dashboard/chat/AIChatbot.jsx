@@ -67,6 +67,13 @@ const renderFormattedMessage = (text) => {
   });
 };
 
+const SUGGESTIONS = [
+  { icon: '💡', title: 'Giải thích khái niệm', desc: 'Giải thích chủ đề phức tạp theo cách dễ hiểu.' },
+  { icon: '📝', title: 'Tóm tắt tài liệu', desc: 'Tóm tắt các ý chính của tài liệu học tập.' },
+  { icon: '💻', title: 'Hỗ trợ viết code', desc: 'Viết, giải thích hoặc tìm lỗi cho đoạn mã.' },
+  { icon: '✍️', title: 'Soạn thảo nội dung', desc: 'Lên ý tưởng, viết bài luận hoặc soạn thư.' }
+];
+
 const AIChatbot = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -349,6 +356,29 @@ const AIChatbot = () => {
                   ? "Tôi đã sẵn sàng trả lời các câu hỏi cụ thể về tài liệu bạn đã chọn."
                   : "Tôi là trợ lý thông minh của bạn. Hãy hỏi tôi bất cứ điều gì, hoặc chọn một tài liệu ở trên để dựa vào đó trả lời."}
               </p>
+
+              {!selectedDocumentId && (
+                <div className="chat-suggestions-grid">
+                  {SUGGESTIONS.map((sug, idx) => (
+                    <div 
+                      key={idx} 
+                      className="chat-suggestion-card"
+                      onClick={() => {
+                        setInputText(sug.title + ": ");
+                        if (textareaRef.current) {
+                          textareaRef.current.focus();
+                        }
+                      }}
+                    >
+                      <div className="sug-icon">{sug.icon}</div>
+                      <div className="sug-content">
+                        <div className="sug-title">{sug.title}</div>
+                        <div className="sug-desc">{sug.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             messages.map(msg => (
