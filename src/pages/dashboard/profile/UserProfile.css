@@ -20,17 +20,49 @@
   font-size: 1rem;
 }
 
-.profile-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: start;
+.profile-tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 2px solid var(--neutral-200);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
-@media (max-width: 768px) {
-  .profile-content {
-    grid-template-columns: 1fr;
-  }
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--neutral-500);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--primary-600);
+  background-color: var(--neutral-50);
+}
+
+.tab-btn.active {
+  color: var(--primary-600);
+  border-bottom-color: var(--primary-600);
+}
+
+.profile-content-container {
+  max-width: 100%;
+}
+
+.profile-section.single-column {
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .toast-notification {
