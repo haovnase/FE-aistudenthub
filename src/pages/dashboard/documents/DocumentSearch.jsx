@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Search, FileText, Download, Eye, Filter, FileCode2, FileSpreadsheet, FileIcon } from 'lucide-react';
+import { 
+  Search, FileText, Download, Eye, Plus, Folder, Edit2, Trash2, FolderOpen, ChevronRight, FileCode2, FileSpreadsheet, FileIcon 
+} from 'lucide-react';
 import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
 import Button from '../../../components/Button/Button';
+import Input from '../../../components/Input/Input';
+import Modal from '../../../components/Modal/Modal';
+import ConfirmDeleteModal from '../../../components/Modal/ConfirmDeleteModal';
 import Toast from '../../../components/Toast/Toast';
+import { validateForm, ruleRequired } from '../../../utils/validation';
 import './DocumentSearch.css';
+
+const PRESET_COLORS = [
+  '#3b82f6', // Blue
+  '#10b981', // Emerald
+  '#8b5cf6', // Violet
+  '#f59e0b', // Amber
+  '#ef4444', // Red
+  '#06b6d4', // Cyan
+  '#ec4899', // Pink
+];
 
 const getFileIcon = (documentType, fileName = '') => {
   const name = fileName.toLowerCase();
@@ -35,6 +51,7 @@ const formatFileSize = (bytes) => {
 const DocumentSearch = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [documents, setDocuments] = useState([]);
   const [folders, setFolders] = useState([]);
   
@@ -45,7 +62,6 @@ const DocumentSearch = () => {
     window.history.replaceState({}, document.title);
   };
 
-  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState({
     keyword: searchParams.get('keyword') || '',
     folderId: searchParams.get('folderId') || '',
@@ -58,9 +74,37 @@ const DocumentSearch = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // Folder Modal states
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [isDeleteFolderModalOpen, setIsDeleteFolderModalOpen] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState(null);
+  const [folderFormData, setFolderFormData] = useState({ name: '', description: '', color: PRESET_COLORS[0] });
+  const [folderFormErrors, setFolderFormErrors] = useState({});
+  const [folderToDelete, setFolderToDelete] = useState(null);
+  const [folderSubmitting, setFolderSubmitting] = useState(false);
+
   useEffect(() => {
     loadFolders();
   }, []);
+
+  // Sync search parameters with filters state
+  useEffect(() => {
+    const folderId = searchParams.get('folderId') || '';
+    const keyword = searchParams.get('keyword') || '';
+    const documentType = searchParams.get('documentType') || '';
+    setFilters(prev => {
+      if (prev.folderId === folderId && prev.keyword === keyword && prev.documentType === documentType) {
+        return prev;
+      }
+      return {
+        ...prev,
+        folderId,
+        keyword,
+        documentType,
+        page: 0
+      };
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     fetchDocuments();
@@ -106,13 +150,21 @@ const DocumentSearch = () => {
     }
   };
 
+  const navigateToFolder = (folderId) => {
+    const newParams = {};
+    if (folderId) newParams.folderId = folderId;
+    if (filters.keyword) newParams.keyword = filters.keyword;
+    if (filters.documentType) newParams.documentType = filters.documentType;
+    setSearchParams(newParams);
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (filters.page !== 0) {
-      setFilters(prev => ({ ...prev, page: 0 }));
-    } else {
-      fetchDocuments();
-    }
+    const newParams = {};
+    if (filters.folderId) newParams.folderId = filters.folderId;
+    if (filters.keyword) newParams.keyword = filters.keyword;
+    if (filters.documentType) newParams.documentType = filters.documentType;
+    setSearchParams(newParams);
   };
 
   const handleDownload = async (docId, fileName, e) => {
@@ -133,6 +185,99 @@ const DocumentSearch = () => {
     navigate(`/dashboard/documents/${docId}`);
   };
 
+  // Folder CRUD Handlers
+  const handleOpenFolderModal = (folder = null) => {
+    setFolderFormErrors({});
+    if (folder) {
+      setEditingFolderId(folder.id);
+      setFolderFormData({
+        name: folder.name || '',
+        description: folder.description || '',
+        color: folder.color || PRESET_COLORS[0]
+      });
+    } else {
+      setEditingFolderId(null);
+      setFolderFormData({ name: '', description: '', color: PRESET_COLORS[0] });
+    }
+    setIsFolderModalOpen(true);
+  };
+
+  const handleFolderSubmit = async () => {
+    const errors = validateForm(folderFormData, { name: [ruleRequired('Folder name is required')] });
+    setFolderFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    setFolderSubmitting(true);
+    try {
+      if (editingFolderId) {
+        await folderService.updateFolder(editingFolderId, {
+          ...folderFormData,
+          parentId: folders.find(f => f.id === editingFolderId)?.parentId || null
+        });
+        setToastMessage('Folder updated successfully!');
+      } else {
+        await folderService.createFolder({
+          ...folderFormData,
+          parentId: filters.folderId || null
+        });
+        setToastMessage('Folder created successfully!');
+      }
+      setIsFolderModalOpen(false);
+      loadFolders();
+    } catch (error) {
+      console.error('Failed to save folder', error);
+    } finally {
+      setFolderSubmitting(false);
+    }
+  };
+
+  const confirmDeleteFolder = (folder, e) => {
+    e.stopPropagation();
+    setFolderToDelete(folder);
+    setIsDeleteFolderModalOpen(true);
+  };
+
+  const handleDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    setFolderSubmitting(true);
+    try {
+      await folderService.deleteFolder(folderToDelete.id);
+      setIsDeleteFolderModalOpen(false);
+      setFolderToDelete(null);
+      loadFolders();
+      if (filters.folderId === folderToDelete.id) {
+        navigateToFolder('');
+      }
+    } catch (error) {
+      console.error('Failed to delete folder', error);
+    } finally {
+      setFolderSubmitting(false);
+    }
+  };
+
+  const getBreadcrumbs = () => {
+    const trail = [];
+    let currentId = filters.folderId;
+    while (currentId) {
+      const folder = folders.find(f => f.id === currentId);
+      if (!folder) break;
+      trail.unshift(folder);
+      currentId = folder.parentId;
+    }
+    return trail;
+  };
+
+  const isSearching = filters.keyword || filters.documentType;
+
+  const currentFolders = folders.filter(f => {
+    if (!filters.folderId) {
+      return !f.parentId;
+    }
+    return f.parentId === filters.folderId;
+  });
+
+  const showEmptyState = !isSearching && currentFolders.length === 0 && documents.length === 0;
+
   return (
     <div className="premium-page-wrapper document-search-container">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -140,9 +285,14 @@ const DocumentSearch = () => {
           <h1 className="page-title">Tài liệu của tôi</h1>
           <p className="page-description">Tìm chính xác những gì bạn cần trên tất cả thư mục và hub.</p>
         </div>
-        <Button onClick={() => navigate('/dashboard/upload')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FileText size={18} /> Tải lên Tài liệu
-        </Button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Button onClick={() => handleOpenFolderModal()} variant="outline" className="flex-center" style={{ gap: '8px' }}>
+            <Plus size={18} /> Tạo Thư mục
+          </Button>
+          <Button onClick={() => navigate('/dashboard/upload')} className="flex-center" style={{ gap: '8px' }}>
+            <FileText size={18} /> Tải lên Tài liệu
+          </Button>
+        </div>
       </div>
 
       <Toast message={toastMessage} onClose={handleCloseToast} />
@@ -163,7 +313,7 @@ const DocumentSearch = () => {
             className="filter-select"
             style={{ width: 'auto', minWidth: '150px' }}
             value={filters.folderId}
-            onChange={(e) => setFilters(prev => ({ ...prev, folderId: e.target.value, page: 0 }))}
+            onChange={(e) => navigateToFolder(e.target.value)}
           >
             <option value="">Tất cả Thư mục</option>
             {folders.map(f => (
@@ -187,78 +337,238 @@ const DocumentSearch = () => {
         </form>
       </div>
 
+      {/* Breadcrumbs */}
+      {!isSearching && (
+        <div className="breadcrumbs" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, color: 'var(--neutral-500)', marginBottom: '8px' }}>
+          <span 
+            style={{ cursor: 'pointer', transition: 'color 0.2s' }} 
+            className="breadcrumb-link"
+            onClick={() => navigateToFolder('')}
+          >
+            Tài liệu của tôi
+          </span>
+          {getBreadcrumbs().map((folder, index, array) => (
+            <React.Fragment key={folder.id}>
+              <ChevronRight size={16} color="var(--neutral-400)" />
+              <span 
+                style={{ 
+                  cursor: index === array.length - 1 ? 'default' : 'pointer', 
+                  color: index === array.length - 1 ? 'var(--neutral-800)' : 'var(--neutral-500)',
+                  fontWeight: index === array.length - 1 ? 600 : 500
+                }} 
+                className={index === array.length - 1 ? '' : 'breadcrumb-link'}
+                onClick={() => index === array.length - 1 ? null : navigateToFolder(folder.id)}
+              >
+                {folder.name}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--neutral-400)' }}>
           Đang tìm kiếm tài liệu...
         </div>
-      ) : documents.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem', backgroundColor: 'var(--glass-bg)', borderRadius: 'var(--radius-xl)' }}>
-          <FileText size={48} color="var(--neutral-300)" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--neutral-700)' }}>Không tìm thấy tài liệu nào</h3>
-          <p style={{ color: 'var(--neutral-500)' }}>Hãy thử điều chỉnh tiêu chí tìm kiếm hoặc tải lên tài liệu mới.</p>
+      ) : showEmptyState ? (
+        <div className="empty-state">
+          <FolderOpen size={48} color="var(--neutral-300)" style={{ marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--neutral-700)' }}>Thư mục này trống</h3>
+          <p style={{ color: 'var(--neutral-500)', marginBottom: '1.5rem' }}>Hãy tạo thư mục con hoặc tải lên tài liệu mới.</p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Button onClick={() => handleOpenFolderModal()} variant="outline">Tạo Thư mục</Button>
+            <Button onClick={() => navigate('/dashboard/upload')}>Tải lên Tài liệu</Button>
+          </div>
         </div>
       ) : (
         <>
-          <div style={{ fontSize: '14px', color: 'var(--neutral-500)', fontWeight: 500 }}>
-            Tìm thấy {totalElements} tài liệu
-          </div>
-          
-          <div className="documents-grid">
-            {documents.map(doc => (
-              <div key={doc.id} className="document-card" onClick={(e) => handlePreview(doc.id, e)}>
-                <div className="document-card-header">
-                  <div className={`doc-icon-wrapper ${getIconClass(doc.fileName)}`}>
-                    {getFileIcon(doc.documentType, doc.fileName)}
-                  </div>
-                  <div className="doc-info">
-                    <h3 className="doc-title" title={doc.title}>{doc.title}</h3>
-                    <div className="doc-meta">
-                      {doc.subject && <span className="doc-badge">{doc.subject}</span>}
-                      <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+          {/* Folders Section (Only when not searching) */}
+          {!isSearching && currentFolders.length > 0 && (
+            <div className="folders-section" style={{ marginBottom: '24px' }}>
+              <h2 className="section-title" style={{ fontSize: '18px', fontWeight: 600, color: 'var(--neutral-800)', marginBottom: '16px' }}>Thư mục</h2>
+              <div className="folder-grid">
+                {currentFolders.map(folder => (
+                  <div 
+                    key={folder.id} 
+                    className="folder-card" 
+                    style={{ '--folder-color': folder.color || 'var(--primary-500)', cursor: 'pointer' }}
+                    onClick={() => navigateToFolder(folder.id)}
+                  >
+                    <div className="folder-card-header">
+                      <div className="folder-icon-wrapper">
+                        <Folder size={24} fill="currentColor" />
+                      </div>
+                      <div className="folder-actions" onClick={e => e.stopPropagation()}>
+                        <button className="folder-action-btn" onClick={() => handleOpenFolderModal(folder)} title="Chỉnh sửa">
+                          <Edit2 size={16} />
+                        </button>
+                        <button className="folder-action-btn delete" onClick={(e) => confirmDeleteFolder(folder, e)} title="Xóa">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="folder-content">
+                      <h3 className="folder-title" title={folder.name}>{folder.name}</h3>
+                      {folder.description && <p className="folder-desc">{folder.description}</p>}
+                    </div>
+
+                    <div className="folder-footer">
+                      <span>{folder.documentCount || 0} Tài liệu</span>
+                      <span>{folder.createdAt ? new Date(folder.createdAt).toLocaleDateString() : ''}</span>
                     </div>
                   </div>
-                </div>
-                
-                <p className="doc-description">
-                  {doc.description || 'Không có mô tả cho tài liệu này.'}
-                </p>
-
-                <div className="doc-footer">
-                  <span className="doc-size">{formatFileSize(doc.fileSize)}</span>
-                  <div className="doc-actions">
-                    <button className="doc-btn" onClick={(e) => handlePreview(doc.id, e)}>
-                      <Eye size={16} /> Xem
-                    </button>
-                    <button className="doc-btn" onClick={(e) => handleDownload(doc.id, doc.fileName, e)}>
-                      <Download size={16} /> Lưu
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="pagination-controls">
-              <Button 
-                variant="outline" 
-                disabled={filters.page === 0}
-                onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
-              >
-                Trang trước
-              </Button>
-              <span className="pagination-text">Trang {filters.page + 1} trên {totalPages}</span>
-              <Button 
-                variant="outline" 
-                disabled={filters.page === totalPages - 1}
-                onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
-              >
-                Trang tiếp
-              </Button>
             </div>
+          )}
+
+          {/* Documents Section */}
+          {documents.length > 0 ? (
+            <div className="documents-section">
+              {!isSearching && currentFolders.length > 0 && (
+                <h2 className="section-title" style={{ fontSize: '18px', fontWeight: 600, color: 'var(--neutral-800)', marginBottom: '16px' }}>Tài liệu</h2>
+              )}
+              {isSearching && (
+                <div style={{ fontSize: '14px', color: 'var(--neutral-500)', fontWeight: 500, marginBottom: '16px' }}>
+                  Tìm thấy {totalElements} tài liệu
+                </div>
+              )}
+              
+              <div className="documents-grid">
+                {documents.map(doc => (
+                  <div key={doc.id} className="document-card" onClick={(e) => handlePreview(doc.id, e)}>
+                    <div className="document-card-header">
+                      <div className={`doc-icon-wrapper ${getIconClass(doc.fileName)}`}>
+                        {getFileIcon(doc.documentType, doc.fileName)}
+                      </div>
+                      <div className="doc-info">
+                        <h3 className="doc-title" title={doc.title}>{doc.title}</h3>
+                        <div className="doc-meta">
+                          {doc.subject && <span className="doc-badge">{doc.subject}</span>}
+                          <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="doc-description">
+                      {doc.description || 'Không có mô tả cho tài liệu này.'}
+                    </p>
+
+                    <div className="doc-footer">
+                      <span className="doc-size">{formatFileSize(doc.fileSize)}</span>
+                      <div className="doc-actions">
+                        <button className="doc-btn" onClick={(e) => handlePreview(doc.id, e)}>
+                          <Eye size={16} /> Xem
+                        </button>
+                        <button className="doc-btn" onClick={(e) => handleDownload(doc.id, doc.fileName, e)}>
+                          <Download size={16} /> Lưu
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="pagination-controls">
+                  <Button 
+                    variant="outline" 
+                    disabled={filters.page === 0}
+                    onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+                  >
+                    Trang trước
+                  </Button>
+                  <span className="pagination-text">Trang {filters.page + 1} trên {totalPages}</span>
+                  <Button 
+                    variant="outline" 
+                    disabled={filters.page === totalPages - 1}
+                    onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+                  >
+                    Trang tiếp
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            isSearching && (
+              <div style={{ textAlign: 'center', padding: '4rem', backgroundColor: 'var(--glass-bg)', borderRadius: 'var(--radius-xl)' }}>
+                <FileText size={48} color="var(--neutral-300)" style={{ margin: '0 auto 1rem' }} />
+                <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--neutral-700)' }}>Không tìm thấy tài liệu nào</h3>
+                <p style={{ color: 'var(--neutral-500)' }}>Hãy thử điều chỉnh tiêu chí tìm kiếm hoặc tải lên tài liệu mới.</p>
+              </div>
+            )
           )}
         </>
       )}
+
+      {/* Create/Edit Folder Modal */}
+      <Modal 
+        isOpen={isFolderModalOpen} 
+        onClose={() => setIsFolderModalOpen(false)}
+        title={editingFolderId ? 'Chỉnh sửa Thư mục' : 'Tạo Thư mục mới'}
+        footer={
+          <>
+            <Button variant="text" onClick={() => setIsFolderModalOpen(false)}>Hủy</Button>
+            <Button onClick={handleFolderSubmit} isLoading={folderSubmitting}>
+              {editingFolderId ? 'Lưu Thay đổi' : 'Tạo Thư mục'}
+            </Button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Input 
+            label="Tên Thư mục" 
+            placeholder="VD: Tài liệu Machine Learning"
+            value={folderFormData.name}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFolderFormData({ ...folderFormData, name: val });
+              if (folderFormErrors.name && val.trim()) {
+                setFolderFormErrors({ ...folderFormErrors, name: null });
+              }
+            }}
+            onBlur={(e) => {
+              if (!e.target.value.trim()) {
+                setFolderFormErrors(prev => ({ ...prev, name: 'Tên thư mục là bắt buộc' }));
+              }
+            }}
+            error={folderFormErrors.name}
+            required
+          />
+          <Input 
+            label="Mô tả (Tùy chọn)" 
+            placeholder="Thư mục này dùng để làm gì?"
+            value={folderFormData.description}
+            onChange={(e) => setFolderFormData({ ...folderFormData, description: e.target.value })}
+          />
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--neutral-700)', marginBottom: '4px' }}>
+              Màu Thư mục
+            </label>
+            <div className="color-picker">
+              {PRESET_COLORS.map(color => (
+                <div 
+                  key={color}
+                  className={`color-option ${folderFormData.color === color ? 'selected' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setFolderFormData({ ...folderFormData, color })}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Folder Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteFolderModalOpen}
+        onClose={() => setIsDeleteFolderModalOpen(false)}
+        onConfirm={handleDeleteFolder}
+        isDeleting={folderSubmitting}
+        title="Xóa Thư mục"
+        message={<>Bạn có chắc chắn muốn xóa <strong>{folderToDelete?.name}</strong>? Hành động này không thể hoàn tác và sẽ xóa toàn bộ nội dung bên trong.</>}
+      />
     </div>
   );
 };

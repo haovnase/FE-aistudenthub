@@ -54,7 +54,6 @@ const DashboardLayout = () => {
     { name: 'Trang chủ', to: '/dashboard', icon: <BookOpen size={20} /> },
     { name: 'Tài liệu của tôi', to: '/dashboard/my', icon: <Search size={20} /> },
     { name: 'Trò chuyện AI', to: '/dashboard/chat', icon: <MessageSquare size={20} /> },
-    { name: 'Thư mục của tôi', to: '/dashboard/folders', icon: <Folder size={20} /> },
     { name: 'Tải lên Tài liệu', to: '/dashboard/upload', icon: <Upload size={20} /> },
     { name: 'Nạp tiền / Gói cước', to: '/dashboard/payment', icon: <CreditCard size={20} /> },
     { name: 'Hồ sơ của tôi', to: '/dashboard/profile', icon: <Settings size={20} /> },

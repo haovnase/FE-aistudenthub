@@ -20,7 +20,6 @@ import {
   PaymentCancel,
   PaymentHistory
 } from './pages/dashboard/DashboardPages';
-import FolderManager from './pages/dashboard/documents/FolderManager';
 import UploadDocument from './pages/dashboard/documents/UploadDocument';
 import DocumentSearch from './pages/dashboard/documents/DocumentSearch';
 import DocumentDetail from './pages/dashboard/documents/DocumentDetail';
@@ -64,7 +63,7 @@ function AppRoutes() {
       >
         <Route index element={<DashboardHome />} />
         <Route path="my" element={<DocumentSearch />} />
-        <Route path="folders" element={<FolderManager />} />
+        <Route path="folders" element={<Navigate to="/dashboard/my" replace />} />
         <Route path="chat" element={<AIChatbot />} />
         <Route path="upload" element={<UploadDocument />} />
         <Route path="documents/:id" element={<DocumentDetail />} />

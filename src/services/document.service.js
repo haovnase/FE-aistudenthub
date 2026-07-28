@@ -37,6 +37,8 @@ const documentService = {
     }
     if (folderId) {
       allDocs = allDocs.filter(d => d.folderId === folderId);
+    } else if (!keyword && !documentType && !subject && !major) {
+      allDocs = allDocs.filter(d => !d.folderId);
     }
     if (documentType) {
       allDocs = allDocs.filter(d => d.documentType === documentType);
