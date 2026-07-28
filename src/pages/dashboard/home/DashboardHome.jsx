@@ -5,7 +5,7 @@ import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
 import { 
   FileText, Folder, Image, FileOutput, 
-  Upload, MessageSquare, Plus, Clock, FileWarning, Globe, User, Crown
+  Upload, MessageSquare, Plus, Clock, FileWarning, Globe, User, Crown, Zap
 } from 'lucide-react';
 import './DashboardHome.css';
 
@@ -109,11 +109,37 @@ const DashboardHome = () => {
   return (
     <div className="dashboard-home-wrapper">
       <div className="welcome-section">
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          Chào mừng trở lại, {user?.fullName || 'bạn'}! 👋
-          {user?.isPremium && <Crown size={26} color="#eab308" fill="#eab308" title="Tài khoản Premium" style={{ filter: 'drop-shadow(0 2px 4px rgba(234,179,8,0.2))' }} />}
-        </h1>
-        <p>Dưới đây là tổng quan về các hoạt động học tập gần đây và kho tài liệu công cộng.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', width: '100%' }}>
+          <div>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+              Chào mừng trở lại, {user?.fullName || 'bạn'}! 👋
+              {user?.subscriptionTier === 'PREMIUM' && <Crown size={26} color="var(--danger-500)" fill="var(--danger-500)" title="Gói Chuyên gia (Premium)" style={{ filter: 'drop-shadow(0 2px 4px rgba(239,68,68,0.2))' }} />}
+              {user?.subscriptionTier === 'PRO' && <Zap size={26} color="#eab308" fill="#eab308" title="Gói Nâng cao (Pro)" style={{ filter: 'drop-shadow(0 2px 4px rgba(234,179,8,0.2))' }} />}
+              {!user?.subscriptionTier && user?.isPremium && <Crown size={26} color="#eab308" fill="#eab308" title="Tài khoản Premium" style={{ filter: 'drop-shadow(0 2px 4px rgba(234,179,8,0.2))' }} />}
+            </h1>
+            <p style={{ margin: '4px 0 0' }}>Dưới đây là tổng quan về các hoạt động học tập gần đây và kho tài liệu công cộng.</p>
+          </div>
+          <div className="tier-badge-container" style={{
+            background: 'var(--neutral-50)',
+            border: '1px solid var(--neutral-200)',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: 'var(--neutral-700)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            <span>Gói dịch vụ: </span>
+            <strong style={{
+              color: user?.subscriptionTier === 'PREMIUM' ? 'var(--danger-600)' : (user?.subscriptionTier === 'PRO' ? '#ca8a04' : 'var(--primary-600)')
+            }}>
+              {user?.subscriptionTier === 'PREMIUM' ? 'Chuyên gia (Premium)' : (user?.subscriptionTier === 'PRO' ? 'Nâng cao (Pro)' : 'Cơ bản (Free)')}
+            </strong>
+          </div>
+        </div>
       </div>
 
       <div className="stats-grid">

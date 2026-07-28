@@ -17,7 +17,8 @@ import {
   Users,
   Terminal,
   CreditCard,
-  Crown
+  Crown,
+  Zap
 } from 'lucide-react';
 import Button from '../components/Button/Button';
 import './DashboardLayout.css';
@@ -28,6 +29,26 @@ const DashboardLayout = () => {
   
   const role = user?.role?.replace('ROLE_', '') || 'USER';
   const isAdmin = role === 'ADMIN';
+
+  const renderUserBadge = (size = 14) => {
+    if (user?.subscriptionTier === 'PREMIUM') {
+      return <Crown size={size} color="var(--danger-500)" fill="var(--danger-500)" title="Gói Chuyên gia (Premium)" />;
+    }
+    if (user?.subscriptionTier === 'PRO') {
+      return <Zap size={size} color="#eab308" fill="#eab308" title="Gói Nâng cao (Pro)" />;
+    }
+    if (user?.isPremium) {
+      return <Crown size={size} color="#eab308" fill="#eab308" title="Tài khoản Premium" />;
+    }
+    return null;
+  };
+
+  const getAvatarBorder = () => {
+    if (user?.subscriptionTier === 'PREMIUM') return '2px solid var(--danger-500)';
+    if (user?.subscriptionTier === 'PRO') return '2px solid #eab308';
+    if (user?.isPremium) return '2px solid #eab308';
+    return 'none';
+  };
 
   const userNavigation = [
     { name: 'Trang chủ', to: '/dashboard', icon: <BookOpen size={20} /> },
@@ -74,13 +95,13 @@ const DashboardLayout = () => {
 
         <div className="sidebar-footer">
           <div className="user-profile-btn">
-            <div className="user-avatar" style={{ border: user?.isPremium ? '2px solid #eab308' : 'none' }}>
+            <div className="user-avatar" style={{ border: getAvatarBorder() }}>
               {user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="user-details">
               <span className="user-email" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {user?.email || 'user@example.com'}
-                {user?.isPremium && <Crown size={14} color="#eab308" fill="#eab308" title="Tài khoản Premium" />}
+                {renderUserBadge(14)}
               </span>
               <span className="user-role">{role}</span>
             </div>
@@ -110,7 +131,7 @@ const DashboardLayout = () => {
           <div className="header-actions">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '14px', color: 'var(--neutral-700)' }}>
                {user?.fullName || user?.email?.split('@')[0] || 'User'}
-               {user?.isPremium && <Crown size={16} color="#eab308" fill="#eab308" style={{ marginLeft: '2px' }} title="Tài khoản Premium" />}
+               {renderUserBadge(16)}
             </div>
           </div>
         </header>
