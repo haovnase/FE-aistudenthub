@@ -8,7 +8,7 @@ import './AIChatbot.css';
 
 const renderFormattedMessage = (text) => {
   if (!text) return null;
-  
+
   const lines = text.split('\n');
 
   return lines.map((line, lineIdx) => {
@@ -77,28 +77,28 @@ const SUGGESTIONS = [
 const AIChatbot = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [sessions, setSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  
+
   // Context selection
   const [myDocuments, setMyDocuments] = useState([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState('');
-  
+
   // Delete Confirmation State
   const [sessionToDelete, setSessionToDelete] = useState(null);
   const [isDeletingSession, setIsDeletingSession] = useState(false);
-  
+
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => {
     loadSessions();
     loadMyDocuments();
-    
+
     // If navigated from DocumentDetail with state
     if (location.state?.documentId) {
       setSelectedDocumentId(location.state.documentId);
@@ -142,7 +142,7 @@ const AIChatbot = () => {
     try {
       const data = await chatService.getSessionMessages(sessionId);
       setMessages(data || []);
-      
+
       // Auto-set the selected document context if this session is tied to a document
       const session = sessions.find(s => s.id === sessionId);
       if (session && session.documentId) {
@@ -186,7 +186,7 @@ const AIChatbot = () => {
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
-    
+
     const textToSend = inputText.trim();
     setInputText('');
     if (textareaRef.current) {
@@ -210,14 +210,14 @@ const AIChatbot = () => {
       } else {
         response = await chatService.chat(textToSend, currentSessionId);
       }
-      
+
       // If this was a new session, set the currentSessionId
       if (!currentSessionId && response.sessionId) {
         setCurrentSessionId(response.sessionId);
         // We also need to reload sessions to update the sidebar
         loadSessions();
       }
-      
+
       // Add AI response to UI
       const aiMsg = {
         id: Date.now().toString() + '-ai',
@@ -226,12 +226,12 @@ const AIChatbot = () => {
         createdAt: new Date().toISOString()
       };
       setMessages(prev => [...prev, aiMsg]);
-      
+
     } catch (err) {
       console.error('Chat error', err);
-      
+
       const apiErrorMessage = err.response?.data?.message || 'Xin lỗi, tôi gặp lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại.';
-      
+
       // Show error as a system message
       setMessages(prev => [...prev, {
         id: Date.now().toString() + '-err',
@@ -270,7 +270,7 @@ const AIChatbot = () => {
             <Plus size={18} /> Cuộc trò chuyện mới
           </button>
         </div>
-        
+
         <div className="chat-sessions-list">
           {sessions.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--neutral-400)', padding: '2rem 1rem', fontSize: '13px' }}>
@@ -278,20 +278,20 @@ const AIChatbot = () => {
             </div>
           ) : (
             sessions.map(session => (
-              <div 
-                key={session.id} 
+              <div
+                key={session.id}
                 className={`chat-session-item ${currentSessionId === session.id ? 'active' : ''}`}
                 onClick={() => setCurrentSessionId(session.id)}
               >
                 <div className="session-info">
                   <span className="session-title">
-                    <MessageSquare size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'text-bottom' }}/>
+                    <MessageSquare size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'text-bottom' }} />
                     {session.title || 'Cuộc trò chuyện mới'}
                   </span>
                   <span className="session-date">{new Date(session.updatedAt || session.createdAt).toLocaleDateString()}</span>
                 </div>
-                <button 
-                  className="delete-session-btn" 
+                <button
+                  className="delete-session-btn"
                   onClick={(e) => confirmDeleteSession(session.id, e)}
                   title="Xóa cuộc trò chuyện"
                 >
@@ -317,12 +317,12 @@ const AIChatbot = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="context-selector">
             <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--neutral-600)' }}>Ngữ cảnh trò chuyện:</span>
             <div style={{ position: 'relative' }}>
               <FileText size={16} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--neutral-500)' }} />
-              <select 
+              <select
                 className="context-select"
                 style={{ paddingLeft: '32px' }}
                 value={selectedDocumentId}
@@ -352,7 +352,7 @@ const AIChatbot = () => {
               </div>
               <h3 className="empty-chat-title">Hôm nay tôi có thể giúp gì cho bạn?</h3>
               <p className="empty-chat-desc">
-                {selectedDocumentId 
+                {selectedDocumentId
                   ? "Tôi đã sẵn sàng trả lời các câu hỏi cụ thể về tài liệu bạn đã chọn."
                   : "Tôi là trợ lý thông minh của bạn. Hãy hỏi tôi bất cứ điều gì, hoặc chọn một tài liệu ở trên để dựa vào đó trả lời."}
               </p>
@@ -360,8 +360,8 @@ const AIChatbot = () => {
               {!selectedDocumentId && (
                 <div className="chat-suggestions-grid">
                   {SUGGESTIONS.map((sug, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="chat-suggestion-card"
                       onClick={() => {
                         setInputText(sug.title + ": ");
@@ -391,13 +391,13 @@ const AIChatbot = () => {
                     {renderFormattedMessage(msg.message)}
                   </div>
                   <div className="message-time">
-                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                   </div>
                 </div>
               </div>
             ))
           )}
-          
+
           {isTyping && (
             <div className="message-wrapper ai">
               <div className="message-avatar ai">
@@ -427,8 +427,8 @@ const AIChatbot = () => {
               onKeyDown={handleKeyDown}
               rows={1}
             />
-            <button 
-              className="send-btn" 
+            <button
+              className="send-btn"
               onClick={handleSendMessage}
               disabled={!inputText.trim() || isTyping}
             >
@@ -442,8 +442,8 @@ const AIChatbot = () => {
       </main>
 
       {/* Professional Delete Confirmation Modal */}
-      <ConfirmDeleteModal 
-        isOpen={!!sessionToDelete} 
+      <ConfirmDeleteModal
+        isOpen={!!sessionToDelete}
         onClose={() => setSessionToDelete(null)}
         onConfirm={handleDeleteSession}
         isDeleting={isDeletingSession}

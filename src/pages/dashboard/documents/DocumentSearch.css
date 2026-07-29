@@ -263,7 +263,9 @@
 .folder-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 4px;
   background-color: var(--folder-color, var(--primary-500));
 }
@@ -395,4 +397,3 @@
   border-radius: var(--radius-xl);
   border: 1px dashed var(--neutral-300);
 }
-

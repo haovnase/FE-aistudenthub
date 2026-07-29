@@ -45,6 +45,16 @@ const adminService = {
     return response.data?.data;
   },
 
+  getBusinessStats: async () => {
+    const response = await api.get('/admin/dashboard/business-stats');
+    return response.data?.data;
+  },
+
+  getRevenueTrend: async (days = 30) => {
+    const response = await api.get(`/admin/dashboard/revenue-trend?days=${days}`);
+    return response.data?.data;
+  },
+
   // ---- System Config ----
   getAllConfigs: async () => {
     const response = await api.get('/admin/system-config');

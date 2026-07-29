@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { 
-  Search, FileText, Download, Eye, Plus, Folder, Edit2, Trash2, FolderOpen, ChevronRight, FileCode2, FileSpreadsheet, FileIcon 
+import {
+  Search, FileText, Download, Eye, Plus, Folder, Edit2, Trash2, FolderOpen, ChevronRight, FileCode2, FileSpreadsheet, FileIcon
 } from 'lucide-react';
 import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
@@ -54,7 +54,7 @@ const DocumentSearch = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [documents, setDocuments] = useState([]);
   const [folders, setFolders] = useState([]);
-  
+
   const [toastMessage, setToastMessage] = useState(location.state?.toastMessage || '');
 
   const handleCloseToast = () => {
@@ -69,7 +69,7 @@ const DocumentSearch = () => {
     page: 0,
     size: 12
   });
-  
+
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -129,7 +129,7 @@ const DocumentSearch = () => {
         page: filters.page,
         size: filters.size
       };
-      
+
       Object.keys(params).forEach(key => {
         if (params[key] === '' || params[key] === null) {
           delete params[key];
@@ -301,15 +301,15 @@ const DocumentSearch = () => {
         <form onSubmit={handleSearchSubmit} className="search-bar-wrapper" style={{ marginBottom: 0 }}>
           <div className="search-input-container">
             <Search className="search-icon" size={20} />
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Tìm kiếm theo tiêu đề, mô tả hoặc từ khóa..." 
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Tìm kiếm theo tiêu đề, mô tả hoặc từ khóa..."
               value={filters.keyword}
               onChange={(e) => setFilters(prev => ({ ...prev, keyword: e.target.value }))}
             />
           </div>
-          <select 
+          <select
             className="filter-select"
             style={{ width: 'auto', minWidth: '150px' }}
             value={filters.folderId}
@@ -320,7 +320,7 @@ const DocumentSearch = () => {
               <option key={f.id} value={f.id}>{f.name}</option>
             ))}
           </select>
-          <select 
+          <select
             className="filter-select"
             style={{ width: 'auto', minWidth: '150px' }}
             value={filters.documentType}
@@ -340,8 +340,8 @@ const DocumentSearch = () => {
       {/* Breadcrumbs */}
       {!isSearching && (
         <div className="breadcrumbs" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500, color: 'var(--neutral-500)', marginBottom: '8px' }}>
-          <span 
-            style={{ cursor: 'pointer', transition: 'color 0.2s' }} 
+          <span
+            style={{ cursor: 'pointer', transition: 'color 0.2s' }}
             className="breadcrumb-link"
             onClick={() => navigateToFolder('')}
           >
@@ -350,12 +350,12 @@ const DocumentSearch = () => {
           {getBreadcrumbs().map((folder, index, array) => (
             <React.Fragment key={folder.id}>
               <ChevronRight size={16} color="var(--neutral-400)" />
-              <span 
-                style={{ 
-                  cursor: index === array.length - 1 ? 'default' : 'pointer', 
+              <span
+                style={{
+                  cursor: index === array.length - 1 ? 'default' : 'pointer',
                   color: index === array.length - 1 ? 'var(--neutral-800)' : 'var(--neutral-500)',
                   fontWeight: index === array.length - 1 ? 600 : 500
-                }} 
+                }}
                 className={index === array.length - 1 ? '' : 'breadcrumb-link'}
                 onClick={() => index === array.length - 1 ? null : navigateToFolder(folder.id)}
               >
@@ -388,9 +388,9 @@ const DocumentSearch = () => {
               <h2 className="section-title" style={{ fontSize: '18px', fontWeight: 600, color: 'var(--neutral-800)', marginBottom: '16px' }}>Thư mục</h2>
               <div className="folder-grid">
                 {currentFolders.map(folder => (
-                  <div 
-                    key={folder.id} 
-                    className="folder-card" 
+                  <div
+                    key={folder.id}
+                    className="folder-card"
                     style={{ '--folder-color': folder.color || 'var(--primary-500)', cursor: 'pointer' }}
                     onClick={() => navigateToFolder(folder.id)}
                   >
@@ -407,7 +407,7 @@ const DocumentSearch = () => {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="folder-content">
                       <h3 className="folder-title" title={folder.name}>{folder.name}</h3>
                       {folder.description && <p className="folder-desc">{folder.description}</p>}
@@ -434,7 +434,7 @@ const DocumentSearch = () => {
                   Tìm thấy {totalElements} tài liệu
                 </div>
               )}
-              
+
               <div className="documents-grid">
                 {documents.map(doc => (
                   <div key={doc.id} className="document-card" onClick={(e) => handlePreview(doc.id, e)}>
@@ -450,7 +450,7 @@ const DocumentSearch = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <p className="doc-description">
                       {doc.description || 'Không có mô tả cho tài liệu này.'}
                     </p>
@@ -472,16 +472,16 @@ const DocumentSearch = () => {
 
               {totalPages > 1 && (
                 <div className="pagination-controls">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     disabled={filters.page === 0}
                     onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
                   >
                     Trang trước
                   </Button>
                   <span className="pagination-text">Trang {filters.page + 1} trên {totalPages}</span>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     disabled={filters.page === totalPages - 1}
                     onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
                   >
@@ -503,8 +503,8 @@ const DocumentSearch = () => {
       )}
 
       {/* Create/Edit Folder Modal */}
-      <Modal 
-        isOpen={isFolderModalOpen} 
+      <Modal
+        isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
         title={editingFolderId ? 'Chỉnh sửa Thư mục' : 'Tạo Thư mục mới'}
         footer={
@@ -517,8 +517,8 @@ const DocumentSearch = () => {
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Input 
-            label="Tên Thư mục" 
+          <Input
+            label="Tên Thư mục"
             placeholder="VD: Tài liệu Machine Learning"
             value={folderFormData.name}
             onChange={(e) => {
@@ -536,8 +536,8 @@ const DocumentSearch = () => {
             error={folderFormErrors.name}
             required
           />
-          <Input 
-            label="Mô tả (Tùy chọn)" 
+          <Input
+            label="Mô tả (Tùy chọn)"
             placeholder="Thư mục này dùng để làm gì?"
             value={folderFormData.description}
             onChange={(e) => setFolderFormData({ ...folderFormData, description: e.target.value })}
@@ -548,7 +548,7 @@ const DocumentSearch = () => {
             </label>
             <div className="color-picker">
               {PRESET_COLORS.map(color => (
-                <div 
+                <div
                   key={color}
                   className={`color-option ${folderFormData.color === color ? 'selected' : ''}`}
                   style={{ backgroundColor: color }}

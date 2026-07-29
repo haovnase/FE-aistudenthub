@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, MessageSquare, ShieldAlert, AlertTriangle } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { Users, FileText, MessageSquare, ShieldAlert, AlertTriangle, DollarSign, TrendingUp, Crown, Star } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LineChart, Line } from 'recharts';
 import adminService from '../../services/admin.service';
 
 const AdminDashboardHome = () => {
   const [stats, setStats] = useState(null);
+  const [businessStats, setBusinessStats] = useState(null);
   const [aiUsage, setAiUsage] = useState(null);
   const [typeStats, setTypeStats] = useState([]);
   const [uploadTrend, setUploadTrend] = useState([]);
+  const [revenueTrend, setRevenueTrend] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsData, aiData, typeData, trendData] = await Promise.all([
+        const [statsData, businessData, aiData, typeData, trendData, revenueData] = await Promise.all([
           adminService.getDashboardStats(),
+          adminService.getBusinessStats(),
           adminService.getAiUsage(),
           adminService.getDocumentTypeStats(),
-          adminService.getUploadTrend()
+          adminService.getUploadTrend(),
+          adminService.getRevenueTrend()
         ]);
         setStats(statsData);
+        setBusinessStats(businessData);
         setAiUsage(aiData);
         setTypeStats(typeData || []);
         
         // Ensure trendData is in the correct format for recharts
         // Assuming backend returns [{ date: '2023-10-01', count: 5 }, ...]
         setUploadTrend(trendData || []);
+        setRevenueTrend(revenueData || []);
       } catch (err) {
         setError('Không thể tải dữ liệu thống kê');
         console.error(err);
@@ -89,8 +95,51 @@ const AdminDashboardHome = () => {
             <ShieldAlert size={24} />
           </div>
           <div className="stat-info">
-            <div className="stat-value">{stats?.deactivatedUsers || 0}</div>
+            <div className="stat-value">{stats?.disabledUsers || 0}</div>
             <div className="stat-label">User Bị Khóa</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style={{ marginBottom: '1rem', color: 'var(--neutral-700)' }}>Chỉ số Kinh doanh</h3>
+      <div className="stats-grid" style={{ marginBottom: '2rem' }}>
+        <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: 'var(--success-50)', color: 'var(--success-600)' }}>
+            <DollarSign size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{businessStats?.totalRevenue ? businessStats.totalRevenue.toLocaleString() : 0}đ</div>
+            <div className="stat-label">Tổng doanh thu</div>
+          </div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: 'var(--primary-50)', color: 'var(--primary-600)' }}>
+            <TrendingUp size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{businessStats?.currentMonthRevenue ? businessStats.currentMonthRevenue.toLocaleString() : 0}đ</div>
+            <div className="stat-label">Doanh thu tháng này</div>
+          </div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: 'var(--warning-50)', color: 'var(--warning-600)' }}>
+            <Crown size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{businessStats?.activePremiumUsers || 0}</div>
+            <div className="stat-label">Active Premium Users</div>
+          </div>
+        </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: 'var(--danger-50)', color: 'var(--danger-600)' }}>
+            <Star size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{businessStats?.mostPopularPackage || "Không có dữ liệu"}</div>
+            <div className="stat-label">Gói Bán Chạy Nhất</div>
           </div>
         </div>
       </div>
@@ -98,15 +147,21 @@ const AdminDashboardHome = () => {
       <div className="dashboard-content-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
         <div className="dashboard-section glass-card">
           <div className="dashboard-section-header">
-            <h3 className="dashboard-section-title">Tỷ lệ sử dụng AI</h3>
+            <h3 className="dashboard-section-title">Xu hướng Doanh thu (30 ngày)</h3>
           </div>
-          <div className="dashboard-section-body" style={{ padding: '2rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--primary-600)', marginBottom: '1rem' }}>
-              {aiUsage?.usagePercentage ? aiUsage.usagePercentage.toFixed(1) : 0}%
-            </div>
-            <p style={{ color: 'var(--neutral-600)' }}>
-              Có <strong>{aiUsage?.documentsWithAi || 0}</strong> trên tổng số <strong>{aiUsage?.totalDocuments || 0}</strong> tài liệu đã được tương tác với AI.
-            </p>
+          <div className="dashboard-section-body" style={{ padding: '2rem', height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={revenueTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--neutral-200)" />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={(value) => `${value / 1000000}M`} tick={{ fontSize: 12, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} width={40} />
+                <Tooltip 
+                  formatter={(value) => [`${value.toLocaleString()} đ`, 'Doanh thu']}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} 
+                />
+                <Line type="monotone" dataKey="revenue" stroke="var(--success-500)" strokeWidth={3} activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
         

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
-import { 
-  FileText, Folder, Image, FileOutput, 
+import {
+  FileText, Folder, Image, FileOutput,
   Upload, MessageSquare, Plus, Clock, FileWarning, Globe, User, Crown, Zap
 } from 'lucide-react';
 import './DashboardHome.css';
@@ -51,7 +51,7 @@ const DashboardHome = () => {
       docs.forEach(doc => {
         const mimeType = (doc.fileType || '').toLowerCase();
         const extension = (doc.fileName || '').split('.').pop().toLowerCase();
-        
+
         if (mimeType.includes('pdf') || extension === 'pdf') {
           pdfs++;
         } else if (mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) {
@@ -83,7 +83,7 @@ const DashboardHome = () => {
   const getDocIcon = (doc) => {
     const mimeType = (doc.fileType || '').toLowerCase();
     const extension = (doc.fileName || '').split('.').pop().toLowerCase();
-    
+
     if (mimeType.includes('pdf') || extension === 'pdf') {
       return <FileText size={20} />;
     }
@@ -96,7 +96,7 @@ const DashboardHome = () => {
   const getDocIconClass = (doc) => {
     const mimeType = (doc.fileType || '').toLowerCase();
     const extension = (doc.fileName || '').split('.').pop().toLowerCase();
-    
+
     if (mimeType.includes('pdf') || extension === 'pdf') {
       return 'pdf';
     }
@@ -152,7 +152,7 @@ const DashboardHome = () => {
             <div className="stat-label">Tổng số Tài liệu</div>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon success">
             <Folder size={24} />
@@ -162,7 +162,7 @@ const DashboardHome = () => {
             <div className="stat-label">Tổng số Thư mục</div>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon warning">
             <FileWarning size={24} />
@@ -172,7 +172,7 @@ const DashboardHome = () => {
             <div className="stat-label">Tài liệu PDF</div>
           </div>
         </div>
-        
+
         <div className="stat-card">
           <div className="stat-icon danger">
             <Image size={24} />
@@ -200,8 +200,8 @@ const DashboardHome = () => {
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)', gridColumn: '1/-1' }}>Đang tải tài liệu public...</div>
           ) : publicDocs.length > 0 ? (
             publicDocs.map(doc => (
-              <Link 
-                to={`/dashboard/documents/${doc.id}`} 
+              <Link
+                to={`/dashboard/documents/${doc.id}`}
                 key={doc.id}
                 style={{
                   display: 'flex',
@@ -260,7 +260,7 @@ const DashboardHome = () => {
               Xem tất cả
             </Link>
           </div>
-          
+
           <div className="recent-docs-list">
             {isLoading ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Đang tải dữ liệu...</div>
@@ -308,7 +308,7 @@ const DashboardHome = () => {
                   <p>Thêm tài liệu học tập mới</p>
                 </div>
               </Link>
-              
+
               <Link to="/dashboard/chat" className="quick-action-btn">
                 <div className="quick-action-icon" style={{ background: 'var(--success-100)', color: 'var(--success-600)' }}>
                   <MessageSquare size={20} />
@@ -318,7 +318,7 @@ const DashboardHome = () => {
                   <p>Giải đáp thắc mắc ngay lập tức</p>
                 </div>
               </Link>
-              
+
               <Link to="/dashboard/my" className="quick-action-btn">
                 <div className="quick-action-icon" style={{ background: 'var(--warning-100)', color: 'var(--warning-600)' }}>
                   <Plus size={20} />
