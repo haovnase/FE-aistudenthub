@@ -33,7 +33,7 @@ const DashboardHome = () => {
       const [docsResponse, foldersResponse, publicResponse] = await Promise.all([
         documentService.getMyDocuments(),
         folderService.getFolders(),
-        documentService.getPublicDocuments({ page: 0, size: 12 }).catch(() => null)
+        documentService.getPublicDocuments({ page: 0, size: 6 }).catch(() => null)
       ]);
 
       const docs = docsResponse || [];
