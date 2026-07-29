@@ -2,6 +2,7 @@ import React from 'react';
 import { HardHat } from 'lucide-react';
 import UserProfile from './profile/UserProfile';
 import DashboardHome from './home/DashboardHome';
+import CommunityDocuments from './documents/CommunityDocuments';
 
 const PageWrapper = ({ title, description }) => (
   <div className="premium-page-wrapper">
@@ -40,6 +41,7 @@ import PaymentHistory from './payment/PaymentHistory';
 export { 
   DashboardHome, 
   UserProfile,
+  CommunityDocuments,
   AdminDashboardHome,
   AdminUserList,
   AdminDocumentList,

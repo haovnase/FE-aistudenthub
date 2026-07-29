@@ -9,6 +9,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import {
   DashboardHome, 
   UserProfile,
+  CommunityDocuments,
   AdminDashboardHome,
   AdminUserList,
   AdminDocumentList,
@@ -63,6 +64,7 @@ function AppRoutes() {
       >
         <Route index element={<DashboardHome />} />
         <Route path="my" element={<DocumentSearch />} />
+        <Route path="community" element={<CommunityDocuments />} />
         <Route path="folders" element={<Navigate to="/dashboard/my" replace />} />
         <Route path="chat" element={<AIChatbot />} />
         <Route path="upload" element={<UploadDocument />} />

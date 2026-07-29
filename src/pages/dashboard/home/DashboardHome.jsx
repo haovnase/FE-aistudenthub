@@ -33,7 +33,7 @@ const DashboardHome = () => {
       const [docsResponse, foldersResponse, publicResponse] = await Promise.all([
         documentService.getMyDocuments(),
         folderService.getFolders(),
-        documentService.getPublicDocuments({ page: 0, size: 6 }).catch(() => null)
+        documentService.getPublicDocuments({ page: 0, size: 12 }).catch(() => null)
       ]);
 
       const docs = docsResponse || [];
@@ -190,7 +190,7 @@ const DashboardHome = () => {
           <div className="dashboard-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem', fontWeight: 600 }}>
             <Globe size={22} color="var(--primary-600)" /> Tài liệu Cộng đồng (Public)
           </div>
-          <Link to="/dashboard/my" style={{ fontSize: '0.875rem', color: 'var(--primary-600)', textDecoration: 'none', fontWeight: 500 }}>
+          <Link to="/dashboard/community" style={{ fontSize: '0.875rem', color: 'var(--primary-600)', textDecoration: 'none', fontWeight: 500 }}>
             Khám phá thêm
           </Link>
         </div>

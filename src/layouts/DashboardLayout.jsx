@@ -18,7 +18,8 @@ import {
   Terminal,
   CreditCard,
   Crown,
-  Zap
+  Zap,
+  Globe
 } from 'lucide-react';
 import Button from '../components/Button/Button';
 import './DashboardLayout.css';
@@ -52,6 +53,7 @@ const DashboardLayout = () => {
 
   const userNavigation = [
     { name: 'Trang chủ', to: '/dashboard', icon: <BookOpen size={20} /> },
+    { name: 'Tài liệu Cộng đồng', to: '/dashboard/community', icon: <Globe size={20} /> },
     { name: 'Tài liệu của tôi', to: '/dashboard/my', icon: <Search size={20} /> },
     { name: 'Trò chuyện AI', to: '/dashboard/chat', icon: <MessageSquare size={20} /> },
     { name: 'Tải lên Tài liệu', to: '/dashboard/upload', icon: <Upload size={20} /> },
