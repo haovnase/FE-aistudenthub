@@ -30,9 +30,9 @@ const AdminSystemConfig = () => {
       }
       // Provide some defaults if API is empty
       if (Object.keys(configObj).length === 0) {
-        configObj['enable_ai_chat'] = true;
-        configObj['enable_document_upload'] = true;
-        configObj['maintenance_mode'] = false;
+        configObj['feature.ai_chat.enabled'] = true;
+        configObj['feature.upload.enabled'] = true;
+        configObj['system.maintenance_mode'] = false;
       }
       
       setConfigs(configObj);
@@ -41,9 +41,9 @@ const AdminSystemConfig = () => {
       
       // Fallback for UI if API missing
       setConfigs({
-        'enable_ai_chat': true,
-        'enable_document_upload': true,
-        'maintenance_mode': false
+        'feature.ai_chat.enabled': true,
+        'feature.upload.enabled': true,
+        'system.maintenance_mode': false
       });
     } finally {
       setLoading(false);
@@ -116,7 +116,7 @@ const AdminSystemConfig = () => {
                   <p style={{ margin: 0, fontSize: '13px', color: 'var(--neutral-500)' }}>Cho phép người dùng tương tác với AI và hỏi đáp tài liệu.</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" checked={!!configs['enable_ai_chat']} onChange={() => handleToggle('enable_ai_chat')} />
+                  <input type="checkbox" checked={!!configs['feature.ai_chat.enabled']} onChange={() => handleToggle('feature.ai_chat.enabled')} />
                   <span className="slider"></span>
                 </label>
               </div>
@@ -127,7 +127,7 @@ const AdminSystemConfig = () => {
                   <p style={{ margin: 0, fontSize: '13px', color: 'var(--neutral-500)' }}>Cho phép users mới upload file lên hệ thống.</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" checked={!!configs['enable_document_upload']} onChange={() => handleToggle('enable_document_upload')} />
+                  <input type="checkbox" checked={!!configs['feature.upload.enabled']} onChange={() => handleToggle('feature.upload.enabled')} />
                   <span className="slider"></span>
                 </label>
               </div>
@@ -138,7 +138,7 @@ const AdminSystemConfig = () => {
                   <p style={{ margin: 0, fontSize: '13px', color: 'var(--warning-600)' }}>Tạm ngưng tất cả chức năng, chỉ Admin mới truy cập được hệ thống.</p>
                 </div>
                 <label className="toggle-switch">
-                  <input type="checkbox" checked={!!configs['maintenance_mode']} onChange={() => handleToggle('maintenance_mode')} />
+                  <input type="checkbox" checked={!!configs['system.maintenance_mode']} onChange={() => handleToggle('system.maintenance_mode')} />
                   <span className="slider"></span>
                 </label>
               </div>
