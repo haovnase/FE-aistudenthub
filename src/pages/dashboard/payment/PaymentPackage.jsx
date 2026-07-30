@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CreditCard, Zap, Crown, CheckCircle2, BookOpen, Check, X } from 'lucide-react';
 import Button from '../../../components/Button/Button';
 import paymentService from '../../../services/payment.service';
+import { useAuth } from '../../../context/AuthContext';
 import './Payment.css';
 
 const PACKAGES = [
@@ -12,10 +13,11 @@ const PACKAGES = [
     priceStr: 'Miễn phí',
     icon: <BookOpen size={24} className="package-icon" />,
     color: 'var(--primary-500)',
-    description: 'Dành cho sinh viên mới bắt đầu, muốn trải nghiệm hệ thống quản lý tài liệu AI.',
+    description: 'Dành cho sinh viên mới bắt đầu, trải nghiệm các tính năng cơ bản của hệ thống.',
     features: [
-      { text: '100 câu hỏi AI / ngày', included: true },
-      { text: 'Lưu trữ tối đa 50 tài liệu', included: true },
+      { text: '10 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 3 tài liệu', included: true },
+      { text: 'Dung lượng tối đa 5MB/tài liệu', included: true },
       { text: 'Tải lên & xem trước tài liệu', included: true },
       { text: 'Chat AI cơ bản', included: true },
       { text: 'Phân tích tài liệu PDF nâng cao', included: false },
@@ -33,15 +35,16 @@ const PACKAGES = [
     priceStr: '39.000đ',
     icon: <Zap size={24} className="package-icon text-warning" />,
     color: '#eab308',
-    description: 'Dành cho sinh viên học tập chủ động, cần AI hỗ trợ sâu và quản lý tài liệu hiệu quả.',
+    description: 'Dành cho sinh viên học tập thường xuyên, cần AI hỗ trợ phân tích và tóm tắt.',
     features: [
-      { text: 'Không giới hạn câu hỏi AI', included: true },
-      { text: 'Lưu trữ tối đa 500 tài liệu', included: true },
+      { text: '50 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 15 tài liệu', included: true },
+      { text: 'Dung lượng tối đa 15MB/tài liệu', included: true },
       { text: 'Phân tích & trích xuất nội dung PDF', included: true },
       { text: 'Quản lý thư mục & nhãn', included: true },
       { text: 'Lưu toàn bộ lịch sử hội thoại AI', included: true },
       { text: 'Hỏi đáp AI theo từng tài liệu', included: true },
-      { text: 'Ưu tiên kết quả tìm kiếm', included: false }
+      { text: 'Tóm tắt tài liệu tự động', included: true }
     ],
     isPopular: true,
     buttonText: 'Chọn gói này',
@@ -54,14 +57,15 @@ const PACKAGES = [
     priceStr: '79.000đ',
     icon: <Crown size={24} className="package-icon text-danger" />,
     color: 'var(--danger-500)',
-    description: 'Dành cho sinh viên nghiên cứu chuyên sâu, cần toàn bộ sức mạnh AI không giới hạn.',
+    description: 'Dành cho sinh viên ôn thi, làm đồ án cần xử lý lượng lớn tài liệu và giải bài tập.',
     features: [
+      { text: '200 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 50 tài liệu', included: true },
+      { text: 'Dung lượng tối đa 30MB/tài liệu', included: true },
       { text: 'Tất cả tính năng gói Nâng cao', included: true },
-      { text: 'Lưu trữ không giới hạn', included: true },
-      { text: 'Ưu tiên kết quả tìm kiếm', included: true },
-      { text: 'Lưu lịch sử hội thoại vĩnh viễn', included: true },
-      { text: 'Hỗ trợ ưu tiên 24/7', included: true },
-      { text: 'Xuất báo cáo tài liệu', included: true },
+      { text: 'Ưu tiên tốc độ xử lý AI', included: true },
+      { text: 'Hỗ trợ giải bài tập chi tiết', included: true },
+      { text: 'Xuất báo cáo & ghi chú', included: true },
       { text: 'Truy cập sớm tính năng mới', included: true }
     ],
     isPopular: false,
@@ -71,6 +75,7 @@ const PACKAGES = [
 ];
 
 const PaymentPackage = () => {
+  const { user } = useAuth();
   const [selectedPkg, setSelectedPkg] = useState(PACKAGES[1]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -98,7 +103,8 @@ const PaymentPackage = () => {
       }
     } catch (err) {
       console.error(err);
-      setError('Đã xảy ra lỗi khi kết nối tới cổng thanh toán.');
+      const errorMessage = err.response?.data?.message || 'Đã xảy ra lỗi khi kết nối tới cổng thanh toán.';
+      setError(errorMessage);
       setIsProcessing(false);
     }
   };
@@ -111,6 +117,17 @@ const PaymentPackage = () => {
           Mở khóa toàn bộ sức mạnh của AI Student Hub với các gói cước siêu tiết kiệm. Thanh toán an toàn, nhanh chóng qua VietQR.
         </p>
       </div>
+
+      {user?.isPremium && (
+        <div className="alert alert-success" style={{ maxWidth: '800px', margin: '0 auto 2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Crown size={24} color="#eab308" fill="#eab308" />
+          <div>
+            <strong>Tài khoản của bạn đã được nâng cấp Premium!</strong>
+            <br />
+            Bạn đang có một gói cước hoạt động. Hiện tại hệ thống không yêu cầu mua thêm.
+          </div>
+        </div>
+      )}
 
       {error && <div className="alert alert-danger" style={{ maxWidth: '800px', margin: '0 auto 2rem' }}>{error}</div>}
 
@@ -175,10 +192,10 @@ const PaymentPackage = () => {
           variant="primary"
           size="lg"
           onClick={handlePayment}
-          disabled={isProcessing || selectedPkg.price === 0}
+          disabled={isProcessing || selectedPkg.price === 0 || user?.isPremium}
           style={{ minWidth: '250px', fontSize: '1.1rem' }}
         >
-          {selectedPkg.price === 0 ? 'Gói mặc định của bạn' : (isProcessing ? 'Đang chuyển hướng...' : 'Thanh toán qua VietQR')}
+          {selectedPkg.price === 0 ? 'Gói mặc định của bạn' : (user?.isPremium ? 'Đã kích hoạt Premium' : (isProcessing ? 'Đang chuyển hướng...' : 'Thanh toán qua VietQR'))}
         </Button>
         {selectedPkg.price > 0 && (
           <div className="payment-methods mt-3 text-neutral-400" style={{ fontSize: '0.85rem' }}>
