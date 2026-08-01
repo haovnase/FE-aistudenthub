@@ -16,8 +16,8 @@ const PACKAGES = [
     description: 'Dành cho sinh viên mới bắt đầu, trải nghiệm các tính năng cơ bản của hệ thống.',
     features: [
       { text: '10 câu hỏi AI / ngày', included: true },
-      { text: 'Lưu trữ tối đa 3 tài liệu', included: true },
-      { text: 'Dung lượng tối đa 5MB/tài liệu', included: true },
+      { text: 'Lưu trữ tối đa 10 tài liệu', included: true },
+      { text: 'Dung lượng tối đa 10MB/tài liệu', included: true },
       { text: 'Tải lên & xem trước tài liệu', included: true },
       { text: 'Chat AI cơ bản', included: true },
       { text: 'Phân tích tài liệu PDF nâng cao', included: false },
@@ -37,12 +37,10 @@ const PACKAGES = [
     color: '#eab308',
     description: 'Dành cho sinh viên học tập thường xuyên, cần AI hỗ trợ phân tích và tóm tắt.',
     features: [
-      { text: '50 câu hỏi AI / ngày', included: true },
-      { text: 'Lưu trữ tối đa 15 tài liệu', included: true },
-      { text: 'Dung lượng tối đa 15MB/tài liệu', included: true },
+      { text: '30 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 20 tài liệu', included: true },
       { text: 'Phân tích & trích xuất nội dung PDF', included: true },
       { text: 'Quản lý thư mục & nhãn', included: true },
-      { text: 'Lưu toàn bộ lịch sử hội thoại AI', included: true },
       { text: 'Hỏi đáp AI theo từng tài liệu', included: true },
       { text: 'Tóm tắt tài liệu tự động', included: true }
     ],
@@ -59,14 +57,12 @@ const PACKAGES = [
     color: 'var(--danger-500)',
     description: 'Dành cho sinh viên ôn thi, làm đồ án cần xử lý lượng lớn tài liệu và giải bài tập.',
     features: [
-      { text: '200 câu hỏi AI / ngày', included: true },
+      { text: '50 câu hỏi AI / ngày', included: true },
       { text: 'Lưu trữ tối đa 50 tài liệu', included: true },
-      { text: 'Dung lượng tối đa 30MB/tài liệu', included: true },
+      { text: 'Dung lượng tối đa 20MB/tài liệu', included: true },
       { text: 'Tất cả tính năng gói Nâng cao', included: true },
       { text: 'Ưu tiên tốc độ xử lý AI', included: true },
       { text: 'Hỗ trợ giải bài tập chi tiết', included: true },
-      { text: 'Xuất báo cáo & ghi chú', included: true },
-      { text: 'Truy cập sớm tính năng mới', included: true }
     ],
     isPopular: false,
     buttonText: 'Chọn gói này',
@@ -81,6 +77,16 @@ const PaymentPackage = () => {
   const [error, setError] = useState('');
 
   const handlePayment = async () => {
+    if (user?.subscriptionTier === 'PREMIUM') {
+      setError('Tài khoản của bạn đã có gói Chuyên gia (Premium). Bạn không thể mua thêm do hạn sử dụng là 30 ngày/1 gói.');
+      return;
+    }
+
+    if (user?.subscriptionTier === 'PRO' && selectedPkg.id === 'pro') {
+      setError('Tài khoản của bạn đã có gói Nâng cao (Pro). Bạn chỉ có thể nâng cấp lên gói Chuyên gia.');
+      return;
+    }
+
     setIsProcessing(true);
     setError('');
     try {
@@ -118,13 +124,23 @@ const PaymentPackage = () => {
         </p>
       </div>
 
-      {user?.isPremium && (
+      {user?.subscriptionTier === 'PREMIUM' && (
         <div className="alert alert-success" style={{ maxWidth: '800px', margin: '0 auto 2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Crown size={24} color="#eab308" fill="#eab308" />
           <div>
-            <strong>Tài khoản của bạn đã được nâng cấp Premium!</strong>
+            <strong>Tài khoản của bạn đang sử dụng Gói Chuyên gia (Premium)!</strong>
             <br />
-            Bạn đang có một gói cước hoạt động. Hiện tại hệ thống không yêu cầu mua thêm.
+            Hạn sử dụng là 30 ngày/1 gói. Hiện tại bạn không thể mua thêm.
+          </div>
+        </div>
+      )}
+      {user?.subscriptionTier === 'PRO' && (
+        <div className="alert alert-info" style={{ maxWidth: '800px', margin: '0 auto 2rem', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '1rem', borderRadius: '12px' }}>
+          <Zap size={24} color="#0284c7" fill="#0284c7" />
+          <div>
+            <strong>Tài khoản của bạn đang sử dụng Gói Nâng cao (Pro)!</strong>
+            <br />
+            Bạn có thể nâng cấp lên Gói Chuyên gia để trải nghiệm đầy đủ tính năng.
           </div>
         </div>
       )}
@@ -192,10 +208,10 @@ const PaymentPackage = () => {
           variant="primary"
           size="lg"
           onClick={handlePayment}
-          disabled={isProcessing || selectedPkg.price === 0 || user?.isPremium}
+          disabled={isProcessing || selectedPkg.price === 0}
           style={{ minWidth: '250px', fontSize: '1.1rem' }}
         >
-          {selectedPkg.price === 0 ? 'Gói mặc định của bạn' : (user?.isPremium ? 'Đã kích hoạt Premium' : (isProcessing ? 'Đang chuyển hướng...' : 'Thanh toán qua VietQR'))}
+          {selectedPkg.price === 0 ? 'Gói mặc định của bạn' : (isProcessing ? 'Đang chuyển hướng...' : 'Thanh toán qua VietQR')}
         </Button>
         {selectedPkg.price > 0 && (
           <div className="payment-methods mt-3 text-neutral-400" style={{ fontSize: '0.85rem' }}>
