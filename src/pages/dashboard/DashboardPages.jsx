@@ -3,6 +3,7 @@ import { HardHat } from 'lucide-react';
 import UserProfile from './profile/UserProfile';
 import DashboardHome from './home/DashboardHome';
 import CommunityDocuments from './documents/CommunityDocuments';
+import SharedWithMe from './documents/SharedWithMe';
 
 const PageWrapper = ({ title, description }) => (
   <div className="premium-page-wrapper">
@@ -51,5 +52,6 @@ export {
   PaymentPackage,
   PaymentSuccess,
   PaymentCancel,
-  PaymentHistory
+  PaymentHistory,
+  SharedWithMe
 };

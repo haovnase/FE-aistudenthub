@@ -70,8 +70,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const reloadProfile = async () => {
+    try {
+      const profile = await profileService.getProfile();
+      if (profile) {
+        setUser(prev => ({ ...prev, ...profile }));
+      }
+    } catch (profileErr) {
+      console.error('Failed to reload user profile:', profileErr);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout, reloadProfile }}>
       {children}
     </AuthContext.Provider>
   );

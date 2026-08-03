@@ -87,6 +87,11 @@ const PaymentPackage = () => {
       return;
     }
 
+    if (user?.subscriptionTier === 'BASIC' && selectedPkg.id === 'basic') {
+      setError('Bạn đang sử dụng gói Cơ bản.');
+      return;
+    }
+
     setIsProcessing(true);
     setError('');
     try {
@@ -148,71 +153,126 @@ const PaymentPackage = () => {
       {error && <div className="alert alert-danger" style={{ maxWidth: '800px', margin: '0 auto 2rem' }}>{error}</div>}
 
       <div className="packages-grid">
-        {PACKAGES.map((pkg) => (
-          <div
-            key={pkg.id}
-            className={`package-card glass-card ${selectedPkg.id === pkg.id ? 'selected' : ''} ${pkg.isPopular ? 'popular' : ''}`}
-            onClick={() => setSelectedPkg(pkg)}
-            style={{ '--pkg-color': pkg.color }}
-          >
-            {pkg.isPopular && <div className="popular-badge">Phổ biến nhất</div>}
 
-            <div className="package-header">
-              <div className="icon-wrapper" style={{ color: pkg.color, backgroundColor: `${pkg.color}15` }}>
-                {pkg.icon}
+        {PACKAGES.map((pkg) => {
+          const isSelected = selectedPkg.id === pkg.id;
+          
+          let isDisabled = isProcessing || pkg.id === 'basic';
+          let btnText = pkg.buttonText;
+          
+          if (user?.subscriptionTier === 'PREMIUM') {
+            isDisabled = true;
+            btnText = pkg.id === 'premium' ? 'Đang sử dụng' : 'Không khả dụng';
+          } else if (user?.subscriptionTier === 'PRO') {
+            if (pkg.id === 'pro') {
+              isDisabled = true;
+              btnText = 'Đang sử dụng';
+            } else if (pkg.id === 'basic') {
+              isDisabled = true;
+              btnText = 'Không khả dụng';
+            }
+          } else {
+            if (pkg.id === 'basic') {
+              isDisabled = true;
+              btnText = 'Đang sử dụng';
+            }
+          }
+
+          return (
+            <div
+              key={pkg.id}
+              className={`package-card glass-card ${isSelected ? 'selected' : ''} ${pkg.isPopular ? 'popular' : ''}`}
+              onClick={() => setSelectedPkg(pkg)}
+              style={{ '--pkg-color': pkg.color }}
+            >
+              {pkg.isPopular && <div className="popular-badge">Phổ biến nhất</div>}
+
+              <div className="package-header">
+                <div className="icon-wrapper" style={{ color: pkg.color, backgroundColor: `${pkg.color}15` }}>
+                  {pkg.icon}
+                </div>
+                <h3 className="package-name">{pkg.name}</h3>
+                <div className="package-price">
+                  <span className="amount">{pkg.priceStr}</span>
+                  <span className="period">/tháng</span>
+                </div>
+                <p className="package-desc">{pkg.description}</p>
               </div>
-              <h3 className="package-name">{pkg.name}</h3>
-              <div className="package-price">
-                <span className="amount">{pkg.priceStr}</span>
-                <span className="period">/tháng</span>
+
+              <ul className="package-features">
+                {pkg.features.map((feature, idx) => (
+                  <li key={idx} className={!feature.included ? 'disabled' : ''}>
+                    {feature.included ? (
+                      <Check size={18} color="var(--success-500)" />
+                    ) : (
+                      <X size={18} color="var(--neutral-400)" />
+                    )}
+                    <span>{feature.text}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="package-footer">
+                <Button 
+                  className={`package-btn w-100 ${isSelected ? 'active' : ''}`}
+                  style={{
+                    backgroundColor: isSelected && !isDisabled ? pkg.color : '',
+                    borderColor: isSelected && !isDisabled ? pkg.color : ''
+                  }}
+                  disabled={isDisabled}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePayment(pkg);
+                  }}
+                >
+                  {isProcessing && isSelected ? <Zap className="spin" size={18} /> : null}
+                  {btnText}
+                </Button>
+                <div className="package-subtext">{pkg.subText}</div>
               </div>
-              <p className="package-desc">{pkg.description}</p>
             </div>
-
-            <ul className="package-features">
-              {pkg.features.map((feature, idx) => (
-                <li key={idx} className={!feature.included ? 'disabled' : ''}>
-                  {feature.included ? (
-                    <Check size={18} color="var(--success-500)" />
-                  ) : (
-                    <X size={18} color="var(--neutral-400)" />
-                  )}
-                  <span>{feature.text}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="package-footer">
-              <Button
-                variant={pkg.id === 'basic' ? 'outline' : (selectedPkg.id === pkg.id ? 'primary' : 'outline')}
-                className="w-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPkg(pkg);
-                }}
-                disabled={pkg.id === 'basic'}
-              >
-                {pkg.id === 'basic' ? 'Đang sử dụng' : (selectedPkg.id === pkg.id ? 'Đang chọn' : 'Chọn gói này')}
-              </Button>
-              <div className="package-subtext">{pkg.subText}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="payment-action-container glass-card text-center" style={{ marginTop: '3rem' }}>
         <h3 className="mb-2">Bạn đang chọn: <strong>{selectedPkg.name}</strong></h3>
         <p className="text-neutral-500 mb-4">Tổng thanh toán: <strong style={{ color: 'var(--primary-600)', fontSize: '1.25rem' }}>{selectedPkg.priceStr}</strong></p>
 
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={handlePayment}
-          disabled={isProcessing || selectedPkg.price === 0}
-          style={{ minWidth: '250px', fontSize: '1.1rem' }}
-        >
-          {selectedPkg.price === 0 ? 'Gói mặc định của bạn' : (isProcessing ? 'Đang chuyển hướng...' : 'Thanh toán qua VietQR')}
-        </Button>
+        {(() => {
+          let isDisabled = isProcessing || selectedPkg.id === 'basic';
+          let btnText = selectedPkg.price === 0 ? 'Gói mặc định của bạn' : (isProcessing ? 'Đang chuyển hướng...' : 'Thanh toán qua VietQR');
+          
+          if (user?.subscriptionTier === 'PREMIUM') {
+            isDisabled = true;
+            btnText = selectedPkg.id === 'premium' ? 'Bạn đang sử dụng gói này' : 'Không khả dụng (Bạn đã có gói cao hơn)';
+          } else if (user?.subscriptionTier === 'PRO') {
+            if (selectedPkg.id === 'pro') {
+              isDisabled = true;
+              btnText = 'Bạn đang sử dụng gói này';
+            } else if (selectedPkg.id === 'basic') {
+              isDisabled = true;
+              btnText = 'Không khả dụng (Bạn đã có gói cao hơn)';
+            }
+          } else {
+            if (selectedPkg.id === 'basic') {
+              isDisabled = true;
+              btnText = 'Bạn đang sử dụng gói này';
+            }
+          }
+
+          return (
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handlePayment}
+              disabled={isDisabled}
+              style={{ minWidth: '250px', fontSize: '1.1rem' }}
+            >
+              {btnText}
+            </Button>
+          );
+        })()}
         {selectedPkg.price > 0 && (
           <div className="payment-methods mt-3 text-neutral-400" style={{ fontSize: '0.85rem' }}>
             Hỗ trợ quét mã QR qua mọi ứng dụng ngân hàng và ví điện tử tại Việt Nam.

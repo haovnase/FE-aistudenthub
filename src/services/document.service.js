@@ -114,6 +114,27 @@ const documentService = {
   stream: async (id) => {
     const response = await api.get(`/documents/${id}/stream`, { responseType: 'blob' });
     return response.data;
+  },
+
+  shareDocument: async (id, targetEmail, permission = 'READ') => {
+    const response = await api.post(`/documents/${id}/share`, { targetEmail, permission });
+    return response.data?.data;
+  },
+
+  getSharedWithMe: async () => {
+    const response = await api.get('/documents/shared-with-me');
+    return response.data?.data;
+  },
+
+  getSharedUsers: async (id) => {
+    // Note: Backend might not have this yet, we catch errors gracefully
+    const response = await api.get(`/documents/${id}/shared-users`);
+    return response.data?.data;
+  },
+
+  revokeShare: async (id, targetUserId) => {
+    const response = await api.delete(`/documents/${id}/share/${targetUserId}`);
+    return response.data;
   }
 };
 

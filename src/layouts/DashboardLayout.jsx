@@ -19,7 +19,8 @@ import {
   CreditCard,
   Crown,
   Zap,
-  Globe
+  Globe,
+  Share2
 } from 'lucide-react';
 import Button from '../components/Button/Button';
 import './DashboardLayout.css';
@@ -55,6 +56,7 @@ const DashboardLayout = () => {
     { name: 'Trang chủ', to: '/dashboard', icon: <BookOpen size={20} /> },
     { name: 'Tài liệu Cộng đồng', to: '/dashboard/community', icon: <Globe size={20} /> },
     { name: 'Tài liệu của tôi', to: '/dashboard/my', icon: <Search size={20} /> },
+    { name: 'Được chia sẻ với tôi', to: '/dashboard/shared-with-me', icon: <Share2 size={20} /> },
     { name: 'Trò chuyện AI', to: '/dashboard/chat', icon: <MessageSquare size={20} /> },
     { name: 'Tải lên Tài liệu', to: '/dashboard/upload', icon: <Upload size={20} /> },
     { name: 'Nạp tiền / Gói cước', to: '/dashboard/payment', icon: <CreditCard size={20} /> },

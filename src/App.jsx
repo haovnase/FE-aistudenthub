@@ -19,7 +19,8 @@ import {
   PaymentPackage,
   PaymentSuccess,
   PaymentCancel,
-  PaymentHistory
+  PaymentHistory,
+  SharedWithMe
 } from './pages/dashboard/DashboardPages';
 import UploadDocument from './pages/dashboard/documents/UploadDocument';
 import DocumentSearch from './pages/dashboard/documents/DocumentSearch';
@@ -65,6 +66,7 @@ function AppRoutes() {
         <Route index element={<DashboardHome />} />
         <Route path="my" element={<DocumentSearch />} />
         <Route path="community" element={<CommunityDocuments />} />
+        <Route path="shared-with-me" element={<SharedWithMe />} />
         <Route path="folders" element={<Navigate to="/dashboard/my" replace />} />
         <Route path="chat" element={<AIChatbot />} />
         <Route path="upload" element={<UploadDocument />} />

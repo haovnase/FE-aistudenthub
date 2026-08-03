@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, XCircle, Loader2, FileText, ArrowRight, RefreshCw } from 'lucide-react';
 import Button from '../../../components/Button/Button';
 import paymentService from '../../../services/payment.service';
+import { useAuth } from '../../../context/AuthContext';
 import './Payment.css';
 
 const PaymentSuccess = () => {
@@ -11,6 +12,7 @@ const PaymentSuccess = () => {
   const [loading, setLoading] = useState(true);
   const [orderDetail, setOrderDetail] = useState(null);
   const [error, setError] = useState('');
+  const { reloadProfile } = useAuth();
 
   const verifyPayment = async () => {
     setLoading(true);
@@ -35,6 +37,9 @@ const PaymentSuccess = () => {
       const data = await paymentService.getPaymentDetail(orderCode);
       if (data && data.status === 'PAID') {
         setOrderDetail(data);
+        if (reloadProfile) {
+          await reloadProfile();
+        }
       } else if (data && data.status === 'PENDING') {
         setError('Hệ thống đang xử lý giao dịch. Vui lòng chờ ít phút hoặc nhấn thử lại.');
       } else {
