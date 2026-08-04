@@ -20,9 +20,7 @@ const PACKAGES = [
       { text: 'Dung lượng tối đa 10MB/tài liệu', included: true },
       { text: 'Tải lên & xem trước tài liệu', included: true },
       { text: 'Chat AI cơ bản', included: true },
-      { text: 'Phân tích tài liệu PDF nâng cao', included: false },
-      { text: 'Quản lý thư mục', included: false },
-      { text: 'Lưu lịch sử hội thoại AI', included: false }
+      { text: 'Phân tích tài liệu PDF nâng cao', included: false }
     ],
     isPopular: false,
     buttonText: 'Đang sử dụng',
@@ -59,10 +57,8 @@ const PACKAGES = [
     features: [
       { text: '50 câu hỏi AI / ngày', included: true },
       { text: 'Lưu trữ tối đa 50 tài liệu', included: true },
-      { text: 'Dung lượng tối đa 20MB/tài liệu', included: true },
       { text: 'Tất cả tính năng gói Nâng cao', included: true },
-      { text: 'Ưu tiên tốc độ xử lý AI', included: true },
-      { text: 'Hỗ trợ giải bài tập chi tiết', included: true },
+      { text: 'Ưu tiên tốc độ xử lý AI', included: true }
     ],
     isPopular: false,
     buttonText: 'Chọn gói này',
