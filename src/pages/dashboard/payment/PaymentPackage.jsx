@@ -129,9 +129,8 @@ const PaymentPackage = () => {
         <div className="alert alert-success" style={{ maxWidth: '800px', margin: '0 auto 2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Crown size={24} color="#eab308" fill="#eab308" />
           <div>
-            <strong>Tài khoản của bạn đang sử dụng Gói Chuyên gia (Premium)!</strong>
-            <br />
-            Hạn sử dụng là 30 ngày/1 gói. Hiện tại bạn không thể mua thêm.
+            Tài khoản của bạn đang sử dụng <strong>Gói Chuyên gia (Premium)</strong>! 
+            Còn <strong>{user?.premiumExpireAt ? Math.ceil((new Date(user.premiumExpireAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 30} ngày</strong> (hết hạn ngày <strong>{user?.premiumExpireAt ? new Date(user.premiumExpireAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</strong>). Hiện tại bạn không thể mua thêm.
           </div>
         </div>
       )}
