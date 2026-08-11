@@ -70,7 +70,7 @@ const SharedWithMe = () => {
             type="text" 
             placeholder="Tìm kiếm tài liệu được chia sẻ..." 
             className="form-control"
-            style={{ paddingLeft: '38px', width: '100%' }}
+            style={{ paddingLeft: '38px', width: '100%', border: 'none', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', outline: 'none' }}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
