@@ -187,7 +187,7 @@ const AdminDocumentList = () => {
                           {doc.title}
                         </span>
                       </td>
-                      <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.ownerName || 'User'}</td>
+                      <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.ownerName || doc.authorName || doc.uploadedBy || doc.user?.fullName || 'Người dùng vô danh'}</td>
                       <td style={{ padding: '1rem 0.5rem' }}>
                         <span style={{
                           padding: '4px 10px',
