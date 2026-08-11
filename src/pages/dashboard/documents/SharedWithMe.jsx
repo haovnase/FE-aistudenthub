@@ -118,6 +118,17 @@ const SharedWithMe = () => {
                   </div>
                 </div>
               </div>
+              <div className="doc-footer" style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--neutral-100)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--neutral-500)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Được chia sẻ bởi</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-700)' }}>
+                    {doc.sharedBy || doc.ownerName || doc.authorName || doc.user?.fullName || 'Người dùng vô danh'}
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--neutral-500)' }}>
+                    {doc.sharerEmail || doc.ownerEmail || doc.authorEmail || doc.user?.email || 'Không có email'}
+                  </span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
