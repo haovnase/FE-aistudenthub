@@ -87,6 +87,7 @@ const AIChatbot = () => {
   // Context selection
   const [myDocuments, setMyDocuments] = useState([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState('');
+  const [sharedDoc, setSharedDoc] = useState(null);
 
   // Delete Confirmation State
   const [sessionToDelete, setSessionToDelete] = useState(null);
@@ -102,6 +103,9 @@ const AIChatbot = () => {
     // If navigated from DocumentDetail with state
     if (location.state?.documentId) {
       setSelectedDocumentId(location.state.documentId);
+      if (location.state.documentTitle) {
+        setSharedDoc({ id: location.state.documentId, title: location.state.documentTitle });
+      }
       // Clean up history state so refresh doesn't lock it
       window.history.replaceState({}, document.title);
     }
@@ -328,14 +332,15 @@ const AIChatbot = () => {
                 value={selectedDocumentId}
                 onChange={(e) => {
                   setSelectedDocumentId(e.target.value);
-                  // Context change usually warrants a new chat unless you just want to switch mid-chat (which backend might support)
-                  // For better UX, let's auto-start new chat if context changes while in an active chat
                   if (currentSessionId && messages.length > 0) {
                     handleNewChat();
                   }
                 }}
               >
                 <option value="">Trí tuệ nhân tạo (Không có tài liệu)</option>
+                {sharedDoc && !myDocuments.some(d => d.id === sharedDoc.id) && (
+                  <option value={sharedDoc.id}>{sharedDoc.title} (Tài liệu được chia sẻ)</option>
+                )}
                 {myDocuments.map(doc => (
                   <option key={doc.id} value={doc.id}>{doc.title}</option>
                 ))}

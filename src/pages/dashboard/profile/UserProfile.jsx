@@ -346,7 +346,7 @@ const UserProfile = () => {
                       {user?.subscriptionTier === 'PREMIUM' ? 'Gói Chuyên gia (Premium)' : (user?.subscriptionTier === 'PRO' ? 'Gói Nâng cao (Pro)' : 'Gói Cơ bản (Free)')}
                     </h3>
                     <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: 'var(--neutral-500)' }}>
-                      {user?.subscriptionTier === 'PREMIUM' ? 'Lưu trữ không giới hạn & phân tích AI cao cấp' : (user?.subscriptionTier === 'PRO' ? 'Hỗ trợ lưu trữ tối đa 500 tài liệu & chat AI' : 'Gói mặc định của sinh viên')}
+                      {user?.subscriptionTier === 'PREMIUM' ? 'Hỗ trợ lưu trữ tối đa 150 tài liệu & phân tích AI cao cấp' : (user?.subscriptionTier === 'PRO' ? 'Hỗ trợ lưu trữ tối đa 100 tài liệu & chat AI' : 'Gói mặc định của sinh viên')}
                     </p>
                   </div>
                 </div>

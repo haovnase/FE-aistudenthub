@@ -15,8 +15,8 @@ const PACKAGES = [
     color: 'var(--primary-500)',
     description: 'Dành cho sinh viên mới bắt đầu, trải nghiệm các tính năng cơ bản của hệ thống.',
     features: [
-      { text: '10 câu hỏi AI / ngày', included: true },
-      { text: 'Lưu trữ tối đa 10 tài liệu', included: true },
+      { text: '5 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 50 tài liệu', included: true },
       { text: 'Dung lượng tối đa 10MB/tài liệu', included: true },
       { text: 'Tải lên & xem trước tài liệu', included: true },
       { text: 'Chat AI cơ bản', included: true },
@@ -35,8 +35,8 @@ const PACKAGES = [
     color: '#eab308',
     description: 'Dành cho sinh viên học tập thường xuyên, cần AI hỗ trợ phân tích và tóm tắt.',
     features: [
-      { text: '30 câu hỏi AI / ngày', included: true },
-      { text: 'Lưu trữ tối đa 20 tài liệu', included: true },
+      { text: '10 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 100 tài liệu', included: true },
       { text: 'Phân tích & trích xuất nội dung PDF', included: true },
       { text: 'Quản lý thư mục & nhãn', included: true },
       { text: 'Hỏi đáp AI theo từng tài liệu', included: true },
@@ -55,8 +55,8 @@ const PACKAGES = [
     color: 'var(--danger-500)',
     description: 'Dành cho sinh viên ôn thi, làm đồ án cần xử lý lượng lớn tài liệu và giải bài tập.',
     features: [
-      { text: '50 câu hỏi AI / ngày', included: true },
-      { text: 'Lưu trữ tối đa 50 tài liệu', included: true },
+      { text: '15 câu hỏi AI / ngày', included: true },
+      { text: 'Lưu trữ tối đa 150 tài liệu', included: true },
       { text: 'Tất cả tính năng gói Nâng cao', included: true },
       { text: 'Ưu tiên tốc độ xử lý AI', included: true }
     ],
@@ -129,9 +129,8 @@ const PaymentPackage = () => {
         <div className="alert alert-success" style={{ maxWidth: '800px', margin: '0 auto 2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Crown size={24} color="#eab308" fill="#eab308" />
           <div>
-            <strong>Tài khoản của bạn đang sử dụng Gói Chuyên gia (Premium)!</strong>
-            <br />
-            Hạn sử dụng là 30 ngày/1 gói. Hiện tại bạn không thể mua thêm.
+            Tài khoản của bạn đang sử dụng <strong>Gói Chuyên gia (Premium)</strong>! 
+            Còn <strong>{user?.premiumExpireAt ? Math.ceil((new Date(user.premiumExpireAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 30} ngày</strong> (hết hạn ngày <strong>{user?.premiumExpireAt ? new Date(user.premiumExpireAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</strong>). Hiện tại bạn không thể mua thêm.
           </div>
         </div>
       )}

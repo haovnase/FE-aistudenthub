@@ -267,7 +267,7 @@ const DocumentDetail = () => {
             <MessageSquare size={16} style={{ marginRight: '6px' }} /> Chia sẻ Tài liệu
           </Button>
 
-          <Button variant="outline" style={{ width: '100%', marginBottom: '8px', borderColor: 'var(--primary-500)', color: 'var(--primary-600)' }} onClick={() => navigate('/dashboard/chat', { state: { documentId: doc.id } })}>
+          <Button variant="outline" style={{ width: '100%', marginBottom: '8px', borderColor: 'var(--primary-500)', color: 'var(--primary-600)' }} onClick={() => navigate('/dashboard/chat', { state: { documentId: doc.id, documentTitle: doc.title } })}>
             <MessageSquare size={16} style={{ marginRight: '6px' }} /> Trò chuyện với Tài liệu này
           </Button>
 
