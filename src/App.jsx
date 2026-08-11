@@ -15,7 +15,6 @@ import {
   AdminDocumentList,
   AdminChatModeration,
   AdminSystemConfig,
-  AdminSystemLogs,
   PaymentPackage,
   PaymentSuccess,
   PaymentCancel,
@@ -88,7 +87,6 @@ function AppRoutes() {
         <Route path="documents" element={<AdminDocumentList />} />
         <Route path="chats" element={<AdminChatModeration />} />
         <Route path="settings" element={<AdminSystemConfig />} />
-        <Route path="logs" element={<AdminSystemLogs />} />
       </Route>
     </Routes>
   );

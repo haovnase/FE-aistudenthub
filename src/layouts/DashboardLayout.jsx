@@ -69,7 +69,6 @@ const DashboardLayout = () => {
     { name: 'Quản lý Tài liệu', to: '/admin/documents', icon: <FileText size={20} /> },
     { name: 'Quản lý Chat', to: '/admin/chats', icon: <MessageSquare size={20} /> },
     { name: 'Cài đặt Hệ thống', to: '/admin/settings', icon: <Shield size={20} /> },
-    { name: 'Nhật ký Hệ thống', to: '/admin/logs', icon: <Terminal size={20} /> },
   ];
 
   const navigation = isAdmin ? adminNavigation : userNavigation;
