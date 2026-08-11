@@ -121,6 +121,7 @@ const AdminUserList = () => {
                   <th style={{ padding: '1rem 0.5rem' }}>Người dùng</th>
                   <th style={{ padding: '1rem 0.5rem' }}>Email</th>
                   <th style={{ padding: '1rem 0.5rem' }}>Vai trò</th>
+                  <th style={{ padding: '1rem 0.5rem' }}>Gói đăng ký</th>
                   <th style={{ padding: '1rem 0.5rem' }}>Trạng thái</th>
                   <th style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>Thao tác</th>
                 </tr>
@@ -128,7 +129,7 @@ const AdminUserList = () => {
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Không tìm thấy người dùng nào.</td>
+                    <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Không tìm thấy người dùng nào.</td>
                   </tr>
                 ) : (
                   users.map(user => (
@@ -143,6 +144,18 @@ const AdminUserList = () => {
                       <td style={{ padding: '1rem 0.5rem' }}>
                         <span style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '12px', fontWeight: 600, backgroundColor: user.role === 'ADMIN' ? 'var(--primary-100)' : 'var(--neutral-100)', color: user.role === 'ADMIN' ? 'var(--primary-700)' : 'var(--neutral-700)' }}>
                           {user.role}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem 0.5rem' }}>
+                        <span style={{ 
+                          padding: '0.25rem 0.5rem', 
+                          borderRadius: '4px', 
+                          fontSize: '12px', 
+                          fontWeight: 600, 
+                          backgroundColor: user.subscriptionTier === 'PREMIUM' ? 'var(--danger-50)' : user.subscriptionTier === 'PRO' || user.isPremium ? 'var(--warning-50)' : 'var(--neutral-100)', 
+                          color: user.subscriptionTier === 'PREMIUM' ? 'var(--danger-600)' : user.subscriptionTier === 'PRO' || user.isPremium ? 'var(--warning-600)' : 'var(--neutral-700)' 
+                        }}>
+                          {user.subscriptionTier === 'PREMIUM' ? 'Premium' : user.subscriptionTier === 'PRO' || user.isPremium ? 'Pro' : 'Free'}
                         </span>
                       </td>
                       <td style={{ padding: '1rem 0.5rem' }}>
@@ -280,6 +293,12 @@ const AdminUserList = () => {
                 <p style={{ margin: '0 0 0.25rem 0', fontSize: '12px', color: 'var(--neutral-500)', fontWeight: 500 }}>NGÀY THAM GIA</p>
                 <p style={{ margin: 0, color: 'var(--neutral-800)', fontWeight: 500 }}>
                   {viewUserDetails.createdAt ? new Date(viewUserDetails.createdAt).toLocaleDateString('vi-VN') : 'Không rõ'}
+                </p>
+              </div>
+              <div>
+                <p style={{ margin: '0 0 0.25rem 0', fontSize: '12px', color: 'var(--neutral-500)', fontWeight: 500 }}>GÓI ĐĂNG KÝ</p>
+                <p style={{ margin: 0, color: 'var(--neutral-800)', fontWeight: 500 }}>
+                  {viewUserDetails.subscriptionTier === 'PREMIUM' ? 'Premium' : viewUserDetails.subscriptionTier === 'PRO' || viewUserDetails.isPremium ? 'Pro' : 'Free'}
                 </p>
               </div>
               <div style={{ gridColumn: 'span 2' }}>
