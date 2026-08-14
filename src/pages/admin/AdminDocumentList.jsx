@@ -14,6 +14,8 @@ const AdminDocumentList = () => {
   const [error, setError] = useState('');
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPublic, setTotalPublic] = useState(null);
   const [activeTab, setActiveTab] = useState('ALL'); // 'ALL' | 'PUBLIC' | 'REVIEW'
   
   const [deleteDocId, setDeleteDocId] = useState(null);
@@ -27,7 +29,30 @@ const AdminDocumentList = () => {
     setLoading(true);
     try {
       const data = await adminService.getAllDocuments(keyword, page, 20);
-      setDocuments(data?.content || []);
+      setDocuments(data?.content || data?.data || data || []);
+      
+      let total = 0;
+      if (data?.totalElements !== undefined && data.totalElements !== null) {
+          total = data.totalElements;
+      } else if (data?.total !== undefined && data.total !== null) {
+          total = data.total;
+      } else {
+          total = data?.content?.length || data?.data?.length || data?.length || 0;
+      }
+      
+      // If we fall back to a small number, maybe try dashboard stats
+      if (total <= 20) {
+        adminService.getDashboardStats().then(stats => {
+          if (stats && stats.totalDocuments && !keyword) {
+            setTotalElements(stats.totalDocuments);
+          } else {
+            setTotalElements(total);
+          }
+        }).catch(() => setTotalElements(total));
+      } else {
+        setTotalElements(total);
+      }
+      
     } catch (err) {
       setError('Lỗi khi tải danh sách tài liệu.');
       console.error(err);
@@ -114,7 +139,7 @@ const AdminDocumentList = () => {
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}
         >
-          <ListFilter size={18} /> Tất cả Tài liệu ({documents.length})
+          <ListFilter size={18} /> Tất cả Tài liệu ({totalElements})
         </button>
         <button 
           onClick={() => setActiveTab('PUBLIC')} 
@@ -132,7 +157,7 @@ const AdminDocumentList = () => {
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}
         >
-          <Globe size={18} /> Tài liệu Public ({documents.filter(d => d.visibility === 'PUBLIC').length})
+          <Globe size={18} /> Tài liệu Public
         </button>
       </div>
 
