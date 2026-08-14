@@ -1,7 +1,7 @@
 import api from './api';
 
 const documentService = {
-  upload: async (file, requestData) => {
+  upload: async (file, requestData, onUploadProgress) => {
     const formData = new FormData();
     formData.append('file', file);
     
@@ -12,6 +12,7 @@ const documentService = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      onUploadProgress,
     });
     return response.data?.data;
   },
@@ -64,9 +65,9 @@ const documentService = {
   },
 
   getPublicDocuments: async (params) => {
-    const { keyword, subject, major, page = 0, size = 6 } = params || {};
+    const { keyword, subject, major, documentType, category, uploader, startDate, endDate, sort, page = 0, size = 12 } = params || {};
     const response = await api.get('/documents/public', {
-      params: { keyword, subject, major, page, size }
+      params: { keyword, subject, major, documentType, category, uploader, startDate, endDate, sort, page, size }
     });
     return response.data?.data;
   },
@@ -134,6 +135,12 @@ const documentService = {
 
   revokeShare: async (id, targetUserId) => {
     const response = await api.delete(`/documents/${id}/share/${targetUserId}`);
+    return response.data;
+  },
+
+  reportDocument: async (id, payload) => {
+    // Note: If backend doesn't support this yet, this might return 404, but we implement frontend first
+    const response = await api.post(`/documents/${id}/report`, payload);
     return response.data;
   }
 };

@@ -29,6 +29,12 @@ const UploadDocument = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
+  
+  // States for tracking upload progress
+  const [uploadProgress, setUploadProgress] = useState({}); // { index: percent }
+  const [uploadStatuses, setUploadStatuses] = useState({}); // { index: 'UPLOADING' | 'PROCESSING' | 'SUCCESS' | 'ERROR' }
+  const [uploadErrors, setUploadErrors] = useState({}); // { index: 'error message' }
+
 
   useEffect(() => {
     const loadFolders = async () => {
@@ -134,21 +140,58 @@ const UploadDocument = () => {
     if (Object.keys(errors).length > 0) return;
 
     setIsSubmitting(true);
+    
+    // Initialize states
+    const initialProgress = {};
+    const initialStatuses = {};
+    const initialErrors = {};
+    files.forEach((_, idx) => {
+      initialProgress[idx] = 0;
+      initialStatuses[idx] = 'UPLOADING';
+      initialErrors[idx] = '';
+    });
+    setUploadProgress(initialProgress);
+    setUploadStatuses(initialStatuses);
+    setUploadErrors(initialErrors);
+
+    let hasError = false;
+
     try {
-      const uploadPromises = files.map(f => {
+      const uploadPromises = files.map(async (f, idx) => {
         const title = files.length === 1 ? formData.title : f.name.replace(/\.[^/.]+$/, "");
         const requestData = {
           ...formData,
           title: title,
           folderId: formData.folderId || null
         };
-        return documentService.upload(f, requestData);
+
+        try {
+          await documentService.upload(f, requestData, (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(prev => ({ ...prev, [idx]: percentCompleted }));
+            if (percentCompleted === 100) {
+              setUploadStatuses(prev => ({ ...prev, [idx]: 'PROCESSING' }));
+            }
+          });
+          setUploadStatuses(prev => ({ ...prev, [idx]: 'SUCCESS' }));
+        } catch (err) {
+          hasError = true;
+          setUploadStatuses(prev => ({ ...prev, [idx]: 'ERROR' }));
+          setUploadErrors(prev => ({ ...prev, [idx]: err.response?.data?.message || 'Lỗi tải lên' }));
+        }
       });
 
       await Promise.all(uploadPromises);
-      navigate('/dashboard/my', { state: { toastMessage: `Đã tải lên thành công ${files.length} tài liệu!` } });
+      
+      if (!hasError) {
+        setTimeout(() => {
+          navigate('/dashboard/my', { state: { toastMessage: `Đã tải lên thành công ${files.length} tài liệu!` } });
+        }, 1000);
+      } else {
+        setIsSubmitting(false);
+      }
     } catch (err) {
-      setApiError(err.response?.data?.message || 'Tải lên tài liệu thất bại. Vui lòng thử lại.');
+      setApiError('Có lỗi xảy ra trong quá trình tải lên.');
       setIsSubmitting(false);
     }
   };
@@ -215,16 +258,45 @@ const UploadDocument = () => {
             <div className="files-list">
               {files.map((f, idx) => (
                 <div key={idx} className="file-preview-item">
-                  <div className="file-preview-info">
-                    <FileIcon size={24} className="file-preview-icon" />
-                    <div className="file-details">
-                      <p className="file-name" title={f.name}>{f.name}</p>
-                      <p className="file-size">{formatFileSize(f.size)}</p>
+                  <div className="file-preview-info" style={{ flex: 1, overflow: 'hidden' }}>
+                    <FileIcon size={24} className="file-preview-icon" style={{ flexShrink: 0 }} />
+                    <div className="file-details" style={{ width: '100%', overflow: 'hidden' }}>
+                      <p className="file-name" title={f.name} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</p>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>
+                        <span className="file-size">{formatFileSize(f.size)}</span>
+                        
+                        {isSubmitting && (
+                          <span style={{ 
+                            fontWeight: 600,
+                            color: uploadStatuses[idx] === 'SUCCESS' ? 'var(--success-600)' : 
+                                   uploadStatuses[idx] === 'ERROR' ? 'var(--error-600)' : 'var(--primary-600)'
+                          }}>
+                            {uploadStatuses[idx] === 'UPLOADING' && `Uploading... ${uploadProgress[idx] || 0}%`}
+                            {uploadStatuses[idx] === 'PROCESSING' && `Processing...`}
+                            {uploadStatuses[idx] === 'SUCCESS' && `Success - Pending Review`}
+                            {uploadStatuses[idx] === 'ERROR' && `Failed: ${uploadErrors[idx]}`}
+                          </span>
+                        )}
+                      </div>
+
+                      {isSubmitting && uploadStatuses[idx] !== 'ERROR' && uploadStatuses[idx] !== 'SUCCESS' && (
+                        <div style={{ width: '100%', backgroundColor: 'var(--neutral-200)', height: '4px', borderRadius: '2px', marginTop: '8px', overflow: 'hidden' }}>
+                           <div style={{ 
+                             height: '100%', 
+                             backgroundColor: uploadStatuses[idx] === 'PROCESSING' ? 'var(--success-500)' : 'var(--primary-500)', 
+                             width: `${uploadProgress[idx] || 0}%`,
+                             transition: 'width 0.3s ease'
+                           }}></div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <button type="button" className="file-remove-btn" onClick={() => handleRemoveFile(idx)} title="Xóa tệp">
-                    <X size={16} />
-                  </button>
+                  {!isSubmitting && (
+                    <button type="button" className="file-remove-btn" onClick={() => handleRemoveFile(idx)} title="Xóa tệp">
+                      <X size={16} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

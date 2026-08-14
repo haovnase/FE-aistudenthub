@@ -397,3 +397,22 @@
   border-radius: var(--radius-xl);
   border: 1px dashed var(--neutral-300);
 }
+
+@media (max-width: 768px) {
+  .search-bar-wrapper {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+  
+  .filter-select {
+    width: 100% !important;
+  }
+  
+  .documents-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .folder-grid {
+    grid-template-columns: 1fr;
+  }
+}

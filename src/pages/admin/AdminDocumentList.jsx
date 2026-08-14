@@ -24,6 +24,47 @@ const AdminDocumentList = () => {
   const [viewStatusDoc, setViewStatusDoc] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [docToReject, setDocToReject] = useState(null);
+  
+  const handleApprove = async (id) => {
+    setIsProcessing(true);
+    try {
+      await adminService.approveDocument(id);
+      alert('Tài liệu đã được duyệt thành công (Toast)!');
+      fetchDocuments();
+    } catch (err) {
+      alert('Lỗi duyệt tài liệu: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const openRejectModal = (doc) => {
+    setDocToReject(doc);
+    setRejectReason('');
+    setRejectModalOpen(true);
+  };
+
+  const handleReject = async () => {
+    if (!rejectReason.trim()) {
+      alert('Vui lòng nhập lý do từ chối.');
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await adminService.rejectDocument(docToReject.id, rejectReason);
+      alert('Đã từ chối tài liệu thành công (Toast)!');
+      setRejectModalOpen(false);
+      setDocToReject(null);
+      fetchDocuments();
+    } catch (err) {
+      alert('Lỗi từ chối tài liệu: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const fetchDocuments = async () => {
     setLoading(true);
@@ -54,8 +95,9 @@ const AdminDocumentList = () => {
       }
       
     } catch (err) {
-      setError('Lỗi khi tải danh sách tài liệu.');
+      setError('Lỗi kết nối máy chủ hoặc hệ thống phản hồi chậm.');
       console.error(err);
+      setDocuments([]);
     } finally {
       setLoading(false);
     }
@@ -65,10 +107,18 @@ const AdminDocumentList = () => {
     fetchDocuments();
   }, [page]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (page === 0) fetchDocuments();
+      else setPage(0); // This will trigger the page useEffect
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
   const handleSearch = (e) => {
     e.preventDefault();
-    setPage(0);
-    fetchDocuments();
+    if (page === 0) fetchDocuments();
+    else setPage(0);
   };
 
   const confirmDelete = async (idToDelete) => {
@@ -101,12 +151,10 @@ const AdminDocumentList = () => {
   };
 
   const filteredDocuments = documents.filter(doc => {
-    if (activeTab === 'PUBLIC') {
-      return doc.visibility === 'PUBLIC';
-    }
-    if (activeTab === 'REVIEW') {
-      return doc.visibility === 'PUBLIC' || doc.processingStatus === 'PENDING';
-    }
+    const status = doc.approvalStatus || doc.status || (doc.visibility === 'PUBLIC' ? 'APPROVED' : 'PENDING');
+    if (activeTab === 'PENDING') return status === 'PENDING' || doc.processingStatus === 'PENDING';
+    if (activeTab === 'APPROVED') return status === 'APPROVED' || doc.visibility === 'PUBLIC';
+    if (activeTab === 'REJECTED') return status === 'REJECTED';
     return true;
   });
 
@@ -122,7 +170,7 @@ const AdminDocumentList = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
         <button 
           onClick={() => setActiveTab('ALL')} 
           style={{
@@ -136,13 +184,14 @@ const AdminDocumentList = () => {
             gap: '8px',
             backgroundColor: activeTab === 'ALL' ? 'var(--primary-600)' : '#ffffff',
             color: activeTab === 'ALL' ? '#ffffff' : 'var(--neutral-700)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            whiteSpace: 'nowrap'
           }}
         >
-          <ListFilter size={18} /> Tất cả Tài liệu ({totalElements})
+          <ListFilter size={18} /> Tất cả Tài liệu
         </button>
         <button 
-          onClick={() => setActiveTab('PUBLIC')} 
+          onClick={() => setActiveTab('PENDING')} 
           style={{
             padding: '0.6rem 1.2rem',
             borderRadius: '8px',
@@ -152,12 +201,51 @@ const AdminDocumentList = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: activeTab === 'PUBLIC' ? 'var(--primary-600)' : '#ffffff',
-            color: activeTab === 'PUBLIC' ? '#ffffff' : 'var(--neutral-700)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            backgroundColor: activeTab === 'PENDING' ? 'var(--warning-500)' : '#ffffff',
+            color: activeTab === 'PENDING' ? '#ffffff' : 'var(--neutral-700)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            whiteSpace: 'nowrap'
           }}
         >
-          <Globe size={18} /> Tài liệu Public
+          <AlertCircle size={18} /> Chờ duyệt
+        </button>
+        <button 
+          onClick={() => setActiveTab('APPROVED')} 
+          style={{
+            padding: '0.6rem 1.2rem',
+            borderRadius: '8px',
+            border: 'none',
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: activeTab === 'APPROVED' ? 'var(--success-600)' : '#ffffff',
+            color: activeTab === 'APPROVED' ? '#ffffff' : 'var(--neutral-700)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <Globe size={18} /> Đã duyệt (Public)
+        </button>
+        <button 
+          onClick={() => setActiveTab('REJECTED')} 
+          style={{
+            padding: '0.6rem 1.2rem',
+            borderRadius: '8px',
+            border: 'none',
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: activeTab === 'REJECTED' ? 'var(--danger-500)' : '#ffffff',
+            color: activeTab === 'REJECTED' ? '#ffffff' : 'var(--neutral-700)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <Trash2 size={18} /> Bị từ chối
         </button>
       </div>
 
@@ -177,14 +265,42 @@ const AdminDocumentList = () => {
         </form>
 
         {error && (
-          <div style={{ backgroundColor: 'var(--error-50)', color: 'var(--error-600)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertCircle size={20} />
-            {error}
+          <div style={{ backgroundColor: 'var(--error-50)', color: 'var(--error-600)', padding: '2rem', borderRadius: '8px', marginBottom: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', textAlign: 'center' }}>
+            <AlertCircle size={40} color="var(--error-500)" />
+            <div>
+              <h3 style={{ margin: '0 0 8px 0', color: 'var(--error-700)' }}>Đã xảy ra lỗi</h3>
+              <p style={{ margin: 0 }}>{error}</p>
+            </div>
+            <Button onClick={fetchDocuments} style={{ backgroundColor: 'var(--error-600)', color: 'white', border: 'none', marginTop: '8px' }}>Thử lại</Button>
           </div>
         )}
 
         {loading ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Đang tải danh sách tài liệu...</div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid var(--neutral-200)', color: 'var(--neutral-600)' }}>
+                  <th style={{ padding: '1rem 0.5rem' }}>Tên tài liệu</th>
+                  <th style={{ padding: '1rem 0.5rem' }}>Người đăng</th>
+                  <th style={{ padding: '1rem 0.5rem' }}>Chế độ chia sẻ</th>
+                  <th style={{ padding: '1rem 0.5rem' }}>Môn học</th>
+                  <th style={{ padding: '1rem 0.5rem' }}>Thời gian</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid var(--neutral-100)' }}>
+                    {Array.from({ length: 6 }).map((_, colIdx) => (
+                      <td key={colIdx} style={{ padding: '1rem 0.5rem' }}>
+                        <div style={{ height: '20px', backgroundColor: 'var(--neutral-200)', borderRadius: '4px', animation: 'skeleton-pulse 1.5s infinite', width: colIdx === 0 ? '70%' : '100%' }}></div>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -201,7 +317,13 @@ const AdminDocumentList = () => {
               <tbody>
                 {filteredDocuments.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Không tìm thấy tài liệu nào.</td>
+                    <td colSpan="6" style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--neutral-500)', backgroundColor: '#ffffff' }}>
+                      <div style={{ width: '64px', height: '64px', margin: '0 auto 1rem', backgroundColor: 'var(--neutral-50)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Search size={32} color="var(--neutral-400)" />
+                      </div>
+                      <h4 style={{ margin: '0 0 8px 0', color: 'var(--neutral-700)', fontSize: '16px' }}>Không tìm thấy tài liệu nào</h4>
+                      <p style={{ margin: 0, fontSize: '14px' }}>Thử thay đổi từ khóa hoặc bộ lọc để xem các kết quả khác.</p>
+                    </td>
                   </tr>
                 ) : (
                   filteredDocuments.map(doc => (
@@ -245,6 +367,24 @@ const AdminDocumentList = () => {
                           >
                             <Activity size={16} />
                           </button>
+                          {activeTab === 'PENDING' && (
+                            <>
+                              <button 
+                                title="Duyệt tài liệu (Approve)"
+                                onClick={() => handleApprove(doc.id)}
+                                style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--success-50)', color: 'var(--success-600)' }}
+                              >
+                                <Globe size={16} />
+                              </button>
+                              <button 
+                                title="Từ chối tài liệu (Reject)"
+                                onClick={() => openRejectModal(doc)}
+                                style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--warning-50)', color: 'var(--warning-600)' }}
+                              >
+                                <AlertCircle size={16} />
+                              </button>
+                            </>
+                          )}
                           <button 
                             title="Xóa tài liệu"
                             onClick={() => setDeleteDocId(doc.id)}
@@ -318,6 +458,31 @@ const AdminDocumentList = () => {
         ) : (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Không có thông tin trạng thái.</div>
         )}
+      </Modal>
+
+      {/* Reject Modal */}
+      <Modal 
+        isOpen={rejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        title="Từ chối tài liệu"
+        footer={
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
+            <Button variant="outline" onClick={() => setRejectModalOpen(false)}>Hủy</Button>
+            <Button style={{ backgroundColor: 'var(--danger-600)', color: 'white' }} onClick={handleReject} disabled={isProcessing}>Xác nhận từ chối</Button>
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem 0' }}>
+          <p style={{ margin: 0, color: 'var(--neutral-700)' }}>
+            Vui lòng nhập lý do từ chối tài liệu <strong>{docToReject?.title}</strong>. Lý do này sẽ được gửi đến người đăng.
+          </p>
+          <textarea 
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Ví dụ: Tài liệu vi phạm bản quyền, nội dung không phù hợp..."
+            style={{ width: '100%', minHeight: '100px', padding: '12px', borderRadius: '8px', border: '1px solid var(--neutral-300)' }}
+          />
+        </div>
       </Modal>
     </div>
   );

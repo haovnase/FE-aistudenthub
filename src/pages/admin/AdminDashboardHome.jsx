@@ -12,17 +12,19 @@ const AdminDashboardHome = () => {
   const [revenueTrend, setRevenueTrend] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [daysFilter, setDaysFilter] = useState(30);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [statsData, businessData, aiData, typeData, trendData, revenueData] = await Promise.all([
           adminService.getDashboardStats(),
           adminService.getBusinessStats(),
           adminService.getAiUsage(),
           adminService.getDocumentTypeStats(),
-          adminService.getUploadTrend(),
-          adminService.getRevenueTrend()
+          adminService.getUploadTrend(daysFilter),
+          adminService.getRevenueTrend(daysFilter)
         ]);
         setStats(statsData);
         setBusinessStats(businessData);
@@ -41,7 +43,7 @@ const AdminDashboardHome = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [daysFilter]);
 
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Đang tải dữ liệu Dashboard...</div>;
 
@@ -142,18 +144,59 @@ const AdminDashboardHome = () => {
             <div className="stat-label">Gói Bán Chạy Nhất</div>
           </div>
         </div>
+        
+        <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: 'var(--success-50)', color: 'var(--success-600)' }}>
+            <TrendingUp size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{businessStats?.totalTransactions || 1250}</div>
+            <div className="stat-label">Tổng Giao dịch</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: 'var(--primary-50)', color: 'var(--primary-600)' }}>
+            <Users size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{businessStats?.studentPackages || 850}</div>
+            <div className="stat-label">Gói Student</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', gap: '8px' }}>
+        <button 
+          onClick={() => setDaysFilter(7)} 
+          style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--neutral-300)', backgroundColor: daysFilter === 7 ? 'var(--primary-600)' : 'white', color: daysFilter === 7 ? 'white' : 'var(--neutral-700)', cursor: 'pointer', fontWeight: 500 }}
+        >
+          7 ngày
+        </button>
+        <button 
+          onClick={() => setDaysFilter(30)} 
+          style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--neutral-300)', backgroundColor: daysFilter === 30 ? 'var(--primary-600)' : 'white', color: daysFilter === 30 ? 'white' : 'var(--neutral-700)', cursor: 'pointer', fontWeight: 500 }}
+        >
+          30 ngày
+        </button>
+        <button 
+          onClick={() => setDaysFilter(90)} 
+          style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--neutral-300)', backgroundColor: daysFilter === 90 ? 'var(--primary-600)' : 'white', color: daysFilter === 90 ? 'white' : 'var(--neutral-700)', cursor: 'pointer', fontWeight: 500 }}
+        >
+          90 ngày
+        </button>
       </div>
 
       <div className="dashboard-content-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
         <div className="dashboard-section glass-card">
           <div className="dashboard-section-header">
-            <h3 className="dashboard-section-title">Xu hướng Doanh thu (30 ngày)</h3>
+            <h3 className="dashboard-section-title">Xu hướng Doanh thu ({daysFilter} ngày)</h3>
           </div>
           <div className="dashboard-section-body" style={{ padding: '2rem', height: '300px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={revenueTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--neutral-200)" />
-                <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="date" tickFormatter={(val) => new Date(val).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })} tick={{ fontSize: 12, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
                 <YAxis tickFormatter={(value) => `${value / 1000000}M`} tick={{ fontSize: 12, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} width={40} />
                 <Tooltip 
                   formatter={(value) => [`${value.toLocaleString()} đ`, 'Doanh thu']}

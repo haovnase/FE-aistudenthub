@@ -317,7 +317,9 @@ const AIChatbot = () => {
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--neutral-900)' }}>Trợ lý AI</h2>
               <p style={{ fontSize: '13px', color: 'var(--neutral-500)' }}>
-                {selectedDocumentId ? 'Trả lời dựa trên tài liệu của bạn' : 'Kiến thức chung & hỗ trợ'}
+                {selectedDocumentId 
+                  ? `Đang hỏi về tài liệu: ${sharedDoc && sharedDoc.id === selectedDocumentId ? sharedDoc.title : myDocuments.find(d => d.id === selectedDocumentId)?.title || 'Tài liệu không xác định'}` 
+                  : 'Kiến thức chung & hỗ trợ'}
               </p>
             </div>
           </div>

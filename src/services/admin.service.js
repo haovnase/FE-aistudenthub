@@ -112,6 +112,16 @@ const adminService = {
     return response.data?.data;
   },
 
+  approveDocument: async (id) => {
+    const response = await api.post(`/admin/documents/${id}/approve`);
+    return response.data;
+  },
+
+  rejectDocument: async (id, reason) => {
+    const response = await api.post(`/admin/documents/${id}/reject`, { reason });
+    return response.data;
+  },
+
   // ---- Chat (Fallback to standard APIs if Admin APIs are missing) ----
   // If there's no Admin API to view all chats, we might get 403 or empty data.
   // We will add it as placeholder.

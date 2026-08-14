@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Trash2, X, Eye } from 'lucide-react';
+import { FileText, Download, Trash2, X, Eye, AlertTriangle } from 'lucide-react';
 import Button from '../../components/Button/Button';
 import documentService from '../../services/document.service';
 
@@ -93,7 +93,9 @@ const AdminDocumentPreviewModal = ({ isOpen, onClose, document, onDelete }) => {
                 [Admin Preview] {document.title}
               </h3>
               <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: 'var(--neutral-500)' }}>
-                Người đăng: <strong>{document.ownerName || 'User'}</strong> | Chế độ: <strong style={{ color: document.visibility === 'PUBLIC' ? 'var(--success-600)' : 'var(--neutral-600)' }}>{document.visibility || 'PUBLIC'}</strong>
+                Người đăng: <strong>{document.ownerName || document.authorName || 'Người dùng vô danh'}</strong> | 
+                {document.reviewerName && <span> Kiểm duyệt bởi: <strong>{document.reviewerName}</strong> | </span>}
+                Chế độ: <strong style={{ color: document.visibility === 'PUBLIC' ? 'var(--success-600)' : 'var(--neutral-600)' }}>{document.visibility || 'PUBLIC'}</strong>
               </p>
             </div>
           </div>
@@ -116,6 +118,22 @@ const AdminDocumentPreviewModal = ({ isOpen, onClose, document, onDelete }) => {
           alignItems: 'center',
           minHeight: '400px'
         }}>
+          {document.reports && document.reports.length > 0 && (
+            <div style={{ width: '100%', marginBottom: '1rem', padding: '1rem', backgroundColor: 'var(--error-50)', border: '1px solid var(--error-200)', borderRadius: '8px' }}>
+              <h4 style={{ color: 'var(--error-700)', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertTriangle size={18} /> Báo cáo vi phạm ({document.reports.length})
+              </h4>
+              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--error-600)', fontSize: '14px' }}>
+                {document.reports.map((report, idx) => (
+                  <li key={idx} style={{ marginBottom: '4px' }}>
+                    <strong>{report.reason || report.type || 'Vi phạm'}</strong>
+                    {report.details || report.description ? `: ${report.details || report.description}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {loading ? (
             <div style={{ padding: '4rem', color: 'var(--neutral-500)' }}>Đang tải bản xem trước tài liệu...</div>
           ) : previewData?.previewMode === 'IMAGE' && fileUrl ? (

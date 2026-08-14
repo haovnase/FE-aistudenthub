@@ -9,7 +9,9 @@ import ConfirmDeleteModal from '../../../components/Modal/ConfirmDeleteModal';
 import Input from '../../../components/Input/Input';
 import OnlyOfficeEditor from '../../../components/OnlyOfficeEditor/OnlyOfficeEditor';
 import ShareDocumentModal from '../../../components/Modal/ShareDocumentModal';
+import ReportDocumentModal from '../../../components/Modal/ReportDocumentModal';
 import { validateForm, ruleRequired } from '../../../utils/validation';
+import { Flag } from 'lucide-react';
 import './DocumentDetail.css';
 
 const formatFileSize = (bytes) => {
@@ -41,6 +43,7 @@ const DocumentDetail = () => {
   const [isConfigLoading, setIsConfigLoading] = useState(false);
   
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   
   const [folders, setFolders] = useState([]);
   const [formData, setFormData] = useState({
@@ -257,6 +260,11 @@ const DocumentDetail = () => {
           </div>
           
           <div className="meta-item">
+            <span className="meta-label">Phiên bản</span>
+            <span className="meta-value" style={{ fontWeight: 600, color: 'var(--primary-600)' }}>v{doc.version || '1.0'}</span>
+          </div>
+          
+          <div className="meta-item">
             <span className="meta-label">Quyền riêng tư</span>
             <span className="meta-value">{doc.visibility === 'PUBLIC' ? 'Công khai (Đã chia sẻ)' : 'Riêng tư (Chỉ mình bạn)'}</span>
           </div>
@@ -281,12 +289,25 @@ const DocumentDetail = () => {
           <Button variant="outline" style={{ width: '100%', borderColor: 'var(--error-200)', color: 'var(--error-600)', marginTop: '8px' }} onClick={() => setIsDeleteModalOpen(true)} isLoading={isDeleting}>
             <Trash2 size={16} style={{ marginRight: '6px' }} /> Xóa Tài liệu
           </Button>
+          
+          <div style={{ marginTop: '16px', borderTop: '1px solid var(--neutral-200)', paddingTop: '16px' }}>
+            <Button variant="outline" style={{ width: '100%', borderColor: 'transparent', color: 'var(--neutral-500)', fontSize: '13px' }} onClick={() => setIsReportModalOpen(true)}>
+              <Flag size={14} style={{ marginRight: '6px' }} /> Báo cáo vi phạm
+            </Button>
+          </div>
         </div>
       </div>
 
       <ShareDocumentModal 
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+        documentTitle={doc.title}
+        documentId={doc.id}
+      />
+
+      <ReportDocumentModal 
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
         documentTitle={doc.title}
         documentId={doc.id}
       />

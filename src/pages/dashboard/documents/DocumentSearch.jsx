@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
-  Search, FileText, Download, Eye, Plus, Folder, Edit2, Trash2, FolderOpen, ChevronRight, FileCode2, FileSpreadsheet, FileIcon
+  Search, FileText, Download, Eye, Plus, Folder, Edit2, Trash2, FolderOpen, ChevronRight, FileCode2, FileSpreadsheet, FileIcon, AlertTriangle
 } from 'lucide-react';
 import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
@@ -73,6 +73,7 @@ const DocumentSearch = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Folder Modal states
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -107,7 +108,10 @@ const DocumentSearch = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    fetchDocuments();
+    const timer = setTimeout(() => {
+      fetchDocuments();
+    }, 500);
+    return () => clearTimeout(timer);
   }, [filters]);
 
   const loadFolders = async () => {
@@ -121,6 +125,7 @@ const DocumentSearch = () => {
 
   const fetchDocuments = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = {
         keyword: filters.keyword,
@@ -142,8 +147,9 @@ const DocumentSearch = () => {
         setTotalPages(data.totalPages || 0);
         setTotalElements(data.totalElements || 0);
       }
-    } catch (error) {
-      console.error('Failed to search documents', error);
+    } catch (err) {
+      console.error('Failed to search documents', err);
+      setError('Lỗi kết nối máy chủ hoặc hệ thống phản hồi chậm.');
       setDocuments([]);
     } finally {
       setLoading(false);
@@ -367,8 +373,29 @@ const DocumentSearch = () => {
       )}
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--neutral-400)' }}>
-          Đang tìm kiếm tài liệu...
+        <div className="documents-grid" style={{ marginTop: '2rem' }}>
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="document-card" style={{ padding: '1.25rem', height: '220px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ width: '40px', height: '48px', backgroundColor: 'var(--neutral-200)', borderRadius: '6px', animation: 'skeleton-pulse 1.5s infinite' }}></div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ height: '20px', width: '80%', backgroundColor: 'var(--neutral-200)', borderRadius: '4px', animation: 'skeleton-pulse 1.5s infinite' }}></div>
+                  <div style={{ height: '14px', width: '50%', backgroundColor: 'var(--neutral-100)', borderRadius: '4px', animation: 'skeleton-pulse 1.5s infinite' }}></div>
+                </div>
+              </div>
+              <div style={{ height: '14px', width: '100%', backgroundColor: 'var(--neutral-100)', borderRadius: '4px', animation: 'skeleton-pulse 1.5s infinite', marginBottom: '8px' }}></div>
+              <div style={{ height: '14px', width: '70%', backgroundColor: 'var(--neutral-100)', borderRadius: '4px', animation: 'skeleton-pulse 1.5s infinite' }}></div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div style={{ padding: '4rem', textAlign: 'center', backgroundColor: 'var(--error-50)', borderRadius: '12px', margin: '2rem 0' }}>
+          <AlertTriangle size={48} color="var(--error-500)" style={{ marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--error-700)' }}>Đã xảy ra lỗi</h3>
+          <p style={{ color: 'var(--error-600)', marginBottom: '1.5rem' }}>{error}</p>
+          <Button onClick={fetchDocuments} style={{ backgroundColor: 'var(--error-600)', color: 'white', border: 'none' }}>
+            Thử lại
+          </Button>
         </div>
       ) : showEmptyState ? (
         <div className="empty-state">
