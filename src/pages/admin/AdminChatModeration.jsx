@@ -17,6 +17,8 @@ const AdminChatModeration = () => {
   const [sessionMessages, setSessionMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
+  //test deploy
+
   const fetchSessions = async () => {
     setLoading(true);
     try {
@@ -122,14 +124,14 @@ const AdminChatModeration = () => {
                       </td>
                       <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <button 
+                          <button
                             title="Xem nội dung chat"
                             onClick={() => viewMessages(session.sessionId)}
                             style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--primary-50)', color: 'var(--primary-600)' }}
                           >
                             <Search size={16} />
                           </button>
-                          <button 
+                          <button
                             title="Xóa phiên chat"
                             onClick={() => setDeleteChatId(session.sessionId)}
                             style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--error-50)', color: 'var(--error-600)' }}
@@ -147,7 +149,7 @@ const AdminChatModeration = () => {
         )}
       </div>
 
-      <ConfirmDeleteModal 
+      <ConfirmDeleteModal
         isOpen={!!deleteChatId}
         onClose={() => setDeleteChatId(null)}
         onConfirm={confirmDelete}
@@ -169,7 +171,7 @@ const AdminChatModeration = () => {
             <div style={{ textAlign: 'center', color: 'var(--neutral-500)', padding: '2rem' }}>Không có tin nhắn nào.</div>
           ) : (
             sessionMessages.map((msg, idx) => (
-              <div key={idx} style={{ 
+              <div key={idx} style={{
                 alignSelf: (msg.role || '').toUpperCase() === 'USER' ? 'flex-end' : 'flex-start',
                 backgroundColor: (msg.role || '').toUpperCase() === 'USER' ? 'var(--primary-50)' : 'var(--neutral-50)',
                 padding: '0.75rem 1rem',
