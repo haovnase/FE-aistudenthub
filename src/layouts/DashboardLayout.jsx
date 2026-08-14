@@ -134,10 +134,6 @@ const DashboardLayout = () => {
             >
               <Menu size={20} />
             </button>
-            <div className="header-search">
-              <Search size={18} color="var(--neutral-400)" />
-              <input type="text" placeholder="Tìm kiếm nhanh trong hub..." />
-            </div>
           </div>
           <div className="header-actions">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '14px', color: 'var(--neutral-700)' }}>
