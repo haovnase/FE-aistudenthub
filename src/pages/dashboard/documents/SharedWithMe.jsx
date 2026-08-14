@@ -64,13 +64,12 @@ const SharedWithMe = () => {
       </div>
 
       <div className="filters-section glass-card" style={{ padding: '1rem', marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <div className="search-bar" style={{ flex: 1, position: 'relative' }}>
+        <div className="search-bar" style={{ flex: 1, position: 'relative', border: 'none', outline: 'none', boxShadow: 'none' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--neutral-400)' }} />
           <input 
             type="text" 
             placeholder="Tìm kiếm tài liệu được chia sẻ..." 
-            className="form-control"
-            style={{ paddingLeft: '38px', width: '100%', border: 'none', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', outline: 'none' }}
+            style={{ width: '100%', border: 'none', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', outline: 'none', padding: '10px 10px 10px 38px', boxShadow: 'none', appearance: 'none', WebkitAppearance: 'none' }}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

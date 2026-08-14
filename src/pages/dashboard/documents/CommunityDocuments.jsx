@@ -234,13 +234,13 @@ const CommunityDocuments = () => {
                           {doc.ownerName || doc.authorName || doc.uploadedBy || doc.user?.fullName || 'Người dùng vô danh'}
                         </span>
                       </span>
-                      <div className="doc-actions">
-                        <button className="doc-btn" onClick={(e) => handlePreview(doc.id, e)}>
-                          <Eye size={16} /> Xem
-                        </button>
-                        <button className="doc-btn" onClick={(e) => handleDownload(doc.id, doc.fileName, e)}>
-                          <Download size={16} /> Lưu
-                        </button>
+                      <div className="doc-actions" style={{ display: 'flex', gap: '16px', color: 'var(--primary-600)', fontSize: '13px', fontWeight: 600 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Eye size={16} /> {doc.viewCount || doc.views || 0}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Download size={16} /> {doc.downloadCount || doc.downloads || 0}
+                        </span>
                       </div>
                     </div>
                   </div>

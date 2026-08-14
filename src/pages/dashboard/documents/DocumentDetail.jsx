@@ -271,6 +271,10 @@ const DocumentDetail = () => {
             <MessageSquare size={16} style={{ marginRight: '6px' }} /> Trò chuyện với Tài liệu này
           </Button>
 
+          <Button variant="outline" style={{ width: '100%', marginBottom: '8px', color: 'var(--neutral-700)', borderColor: 'var(--neutral-300)' }} onClick={handleDownload}>
+            <Download size={16} style={{ marginRight: '6px' }} /> Lưu Tài liệu
+          </Button>
+
           <Button variant="outline" style={{ width: '100%' }} onClick={() => setIsEditModalOpen(true)}>
             <Edit size={16} style={{ marginRight: '6px' }} /> Chỉnh sửa Thông tin
           </Button>
