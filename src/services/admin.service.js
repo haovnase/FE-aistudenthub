@@ -122,6 +122,29 @@ const adminService = {
     return response.data;
   },
 
+  dmcaTakedown: async (documentId) => {
+    // According to the requirement, the path is /moderator/dashboard/dmca-takedown but typical is admin
+    // I will use /admin/documents/${id}/dmca-takedown to be consistent, but the prompt says POST /api/v1/moderator/dashboard/dmca-takedown
+    const response = await api.post('/moderator/dashboard/dmca-takedown', { documentId });
+    return response.data;
+  },
+
+  // ---- Reports ----
+  getReports: async (params) => {
+    const { status, reason, page = 0, size = 20 } = params || {};
+    const searchParams = new URLSearchParams({ page, size });
+    if (status) searchParams.append('status', status);
+    if (reason) searchParams.append('reason', reason);
+    
+    const response = await api.get(`/admin/reports?${searchParams.toString()}`);
+    return response.data?.data;
+  },
+
+  resolveReport: async (reportId, decision, moderatorNote) => {
+    const response = await api.put(`/admin/reports/${reportId}/resolve`, { decision, moderatorNote });
+    return response.data;
+  },
+
   // ---- Chat (Fallback to standard APIs if Admin APIs are missing) ----
   // If there's no Admin API to view all chats, we might get 403 or empty data.
   // We will add it as placeholder.

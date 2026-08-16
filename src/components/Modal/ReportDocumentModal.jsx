@@ -11,10 +11,10 @@ const ReportDocumentModal = ({ isOpen, onClose, documentTitle, documentId }) => 
   const [success, setSuccess] = useState('');
 
   const reportReasons = [
-    { id: 'SPAM', label: 'Spam hoặc nội dung rác' },
-    { id: 'COPYRIGHT', label: 'Vi phạm bản quyền' },
-    { id: 'INACCURATE', label: 'Sai kiến thức/Thông tin không chính xác' },
-    { id: 'OTHER', label: 'Khác' }
+    { id: 'COPYRIGHT_VIOLATION', label: 'Vi phạm bản quyền' },
+    { id: 'INAPPROPRIATE_CONTENT', label: 'Nội dung không phù hợp' },
+    { id: 'SPAM', label: 'Spam hoặc quảng cáo' },
+    { id: 'OTHER', label: 'Lý do khác' }
   ];
 
   // Reset form when modal opens

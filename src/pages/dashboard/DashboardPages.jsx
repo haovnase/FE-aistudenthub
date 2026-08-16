@@ -31,6 +31,7 @@ import AdminUserList from '../admin/AdminUserList';
 import AdminDocumentList from '../admin/AdminDocumentList';
 import AdminChatModeration from '../admin/AdminChatModeration';
 import AdminSystemConfig from '../admin/AdminSystemConfig';
+import AdminReportList from '../admin/AdminReportList';
 
 // Payment
 import PaymentPackage from './payment/PaymentPackage';
@@ -47,6 +48,7 @@ export {
   AdminDocumentList,
   AdminChatModeration,
   AdminSystemConfig,
+  AdminReportList,
   PaymentPackage,
   PaymentSuccess,
   PaymentCancel,

@@ -66,6 +66,20 @@ const AdminDocumentList = () => {
     }
   };
 
+  const handleDmcaTakedown = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn gỡ bỏ tài liệu này do vi phạm DMCA?')) return;
+    setIsProcessing(true);
+    try {
+      await adminService.dmcaTakedown(id);
+      alert('Đã gỡ bỏ tài liệu do vi phạm DMCA thành công!');
+      fetchDocuments();
+    } catch (err) {
+      alert('Lỗi gỡ bỏ DMCA: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const fetchDocuments = async () => {
     setLoading(true);
     try {
@@ -385,6 +399,15 @@ const AdminDocumentList = () => {
                               </button>
                             </>
                           )}
+                          {doc.visibility === 'PUBLIC' && doc.approvalStatus !== 'DMCA_TAKEN_DOWN' && (
+                            <button 
+                              title="Gỡ bỏ khẩn cấp (DMCA)"
+                              onClick={() => handleDmcaTakedown(doc.id)}
+                              style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--error-100)', color: 'var(--error-700)' }}
+                            >
+                              <AlertCircle size={16} />
+                            </button>
+                          )}
                           <button 
                             title="Xóa tài liệu"
                             onClick={() => setDeleteDocId(doc.id)}
@@ -409,6 +432,7 @@ const AdminDocumentList = () => {
         onClose={() => setPreviewDoc(null)}
         document={previewDoc}
         onDelete={(id) => confirmDelete(id)}
+        onDmcaTakedown={(id) => handleDmcaTakedown(id)}
       />
 
       <ConfirmDeleteModal 

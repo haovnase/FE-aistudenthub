@@ -475,6 +475,14 @@ const DocumentSearch = () => {
                           {doc.subject && <span className="doc-badge">{doc.subject}</span>}
                           <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
                         </div>
+                        {doc.visibility === 'PUBLIC' && (
+                          <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            {(!doc.approvalStatus || doc.approvalStatus === 'PENDING') && <span className="doc-badge" style={{ backgroundColor: 'var(--warning-100)', color: 'var(--warning-700)', padding: '2px 8px', fontSize: '11px', borderRadius: '12px' }}>Chờ duyệt</span>}
+                            {doc.approvalStatus === 'APPROVED' && <span className="doc-badge" style={{ backgroundColor: 'var(--success-100)', color: 'var(--success-700)', padding: '2px 8px', fontSize: '11px', borderRadius: '12px' }}>Đã duyệt công khai</span>}
+                            {doc.approvalStatus === 'REJECTED' && <span className="doc-badge" style={{ backgroundColor: 'var(--error-100)', color: 'var(--error-700)', padding: '2px 8px', fontSize: '11px', borderRadius: '12px' }} title={`Lý do: ${doc.rejectionReason || 'Không hợp lệ'}`}>Từ chối công khai</span>}
+                            {doc.approvalStatus === 'DMCA_TAKEN_DOWN' && <span className="doc-badge" style={{ backgroundColor: 'var(--error-500)', color: 'white', padding: '2px 8px', fontSize: '11px', borderRadius: '12px' }} title={`Lý do: ${doc.rejectionReason || 'Vi phạm bản quyền'}`}>Gỡ bỏ bản quyền</span>}
+                          </div>
+                        )}
                       </div>
                     </div>
 

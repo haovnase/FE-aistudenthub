@@ -3,7 +3,7 @@ import { FileText, Download, Trash2, X, Eye, AlertTriangle } from 'lucide-react'
 import Button from '../../components/Button/Button';
 import documentService from '../../services/document.service';
 
-const AdminDocumentPreviewModal = ({ isOpen, onClose, document, onDelete }) => {
+const AdminDocumentPreviewModal = ({ isOpen, onClose, document, onDelete, onDmcaTakedown }) => {
   const [previewData, setPreviewData] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -96,6 +96,9 @@ const AdminDocumentPreviewModal = ({ isOpen, onClose, document, onDelete }) => {
                 Người đăng: <strong>{document.ownerName || document.authorName || 'Người dùng vô danh'}</strong> | 
                 {document.reviewerName && <span> Kiểm duyệt bởi: <strong>{document.reviewerName}</strong> | </span>}
                 Chế độ: <strong style={{ color: document.visibility === 'PUBLIC' ? 'var(--success-600)' : 'var(--neutral-600)' }}>{document.visibility || 'PUBLIC'}</strong>
+                {document.dmcaVerified && (
+                  <span> | <strong style={{ color: 'var(--success-600)' }}>Đã xác minh DMCA</strong> ({new Date(document.dmcaVerifiedAt).toLocaleDateString()})</span>
+                )}
               </p>
             </div>
           </div>
@@ -172,6 +175,15 @@ const AdminDocumentPreviewModal = ({ isOpen, onClose, document, onDelete }) => {
 
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <Button variant="outline" onClick={onClose}>Đóng</Button>
+            {document.visibility === 'PUBLIC' && document.approvalStatus !== 'DMCA_TAKEN_DOWN' && onDmcaTakedown && (
+              <Button 
+                variant="primary" 
+                style={{ backgroundColor: 'var(--error-700)', color: 'white' }} 
+                onClick={() => { onClose(); onDmcaTakedown(document.id); }}
+              >
+                <AlertTriangle size={16} style={{ marginRight: '6px' }} /> Gỡ bỏ khẩn cấp (DMCA)
+              </Button>
+            )}
             <Button 
               variant="primary" 
               style={{ backgroundColor: 'var(--error-600)', color: 'white' }} 

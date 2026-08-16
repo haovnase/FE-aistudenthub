@@ -17,6 +17,7 @@ import {
   PaymentSuccess,
   PaymentCancel,
   PaymentHistory,
+  AdminReportList,
   SharedWithMe
 } from './pages/dashboard/DashboardPages';
 import UploadDocument from './pages/dashboard/documents/UploadDocument';
@@ -89,6 +90,7 @@ function AppRoutes() {
           <Route path="users" element={<AdminUserList />} />
           <Route path="documents" element={<AdminDocumentList />} />
           <Route path="chats" element={<AdminChatModeration />} />
+          <Route path="reports" element={<AdminReportList />} />
           <Route path="settings" element={<AdminSystemConfig />} />
         </Route>
       </Routes>

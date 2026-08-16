@@ -290,11 +290,13 @@ const DocumentDetail = () => {
             <Trash2 size={16} style={{ marginRight: '6px' }} /> Xóa Tài liệu
           </Button>
           
-          <div style={{ marginTop: '16px', borderTop: '1px solid var(--neutral-200)', paddingTop: '16px' }}>
-            <Button variant="outline" style={{ width: '100%', borderColor: 'transparent', color: 'var(--neutral-500)', fontSize: '13px' }} onClick={() => setIsReportModalOpen(true)}>
-              <Flag size={14} style={{ marginRight: '6px' }} /> Báo cáo vi phạm
-            </Button>
-          </div>
+          {doc.visibility === 'PUBLIC' && (
+            <div style={{ marginTop: '16px', borderTop: '1px solid var(--neutral-200)', paddingTop: '16px' }}>
+              <Button variant="outline" style={{ width: '100%', borderColor: 'transparent', color: 'var(--neutral-500)', fontSize: '13px' }} onClick={() => setIsReportModalOpen(true)}>
+                <Flag size={14} style={{ marginRight: '6px' }} /> Báo cáo vi phạm
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
