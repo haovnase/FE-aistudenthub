@@ -150,7 +150,7 @@ const AdminDashboardHome = () => {
             <TrendingUp size={24} />
           </div>
           <div className="stat-info">
-            <div className="stat-value">{businessStats?.totalTransactions || 1250}</div>
+            <div className="stat-value">{businessStats?.totalTransactions || 0}</div>
             <div className="stat-label">Tổng Giao dịch</div>
           </div>
         </div>
@@ -160,7 +160,7 @@ const AdminDashboardHome = () => {
             <Users size={24} />
           </div>
           <div className="stat-info">
-            <div className="stat-value">{businessStats?.studentPackages || 850}</div>
+            <div className="stat-value">{businessStats?.studentPackages || 0}</div>
             <div className="stat-label">Gói Student</div>
           </div>
         </div>

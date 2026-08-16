@@ -37,11 +37,11 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   
   const role = user?.role?.replace('ROLE_', '') || 'USER';
-  if (requireAdmin && role !== 'ADMIN') {
+  if (requireAdmin && role !== 'ADMIN' && role !== 'MODERATOR') {
     return <Navigate to="/dashboard" replace />;
   }
   
-  if (!requireAdmin && role === 'ADMIN') {
+  if (!requireAdmin && (role === 'ADMIN' || role === 'MODERATOR')) {
     return <Navigate to="/admin" replace />;
   }
   
@@ -51,7 +51,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth();
   const role = user?.role?.replace('ROLE_', '') || 'USER';
-  const isAdmin = role === 'ADMIN';
+  const isAdminOrMod = role === 'ADMIN' || role === 'MODERATOR';
 
   return (
     <Suspense fallback={<div style={{ padding: '4rem', textAlign: 'center', color: 'var(--neutral-500)' }}>Đang tải...</div>}>

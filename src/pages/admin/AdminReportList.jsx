@@ -317,12 +317,12 @@ const AdminReportList = () => {
         }
       >
         {selectedReport && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: 'var(--neutral-800)' }}>
             <div style={{ padding: '16px', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--neutral-700)' }}>Thông tin báo cáo</h4>
-              <p style={{ margin: '0 0 4px 0', fontSize: '14px' }}><strong>Tài liệu:</strong> {selectedReport.documentTitle || selectedReport.documentId}</p>
-              <p style={{ margin: '0 0 4px 0', fontSize: '14px' }}><strong>Lý do:</strong> {getReasonLabel(selectedReport.reason)}</p>
-              <p style={{ margin: 0, fontSize: '14px' }}><strong>Mô tả:</strong> {selectedReport.description || 'Không có'}</p>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--neutral-800)' }}>Thông tin báo cáo</h4>
+              <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--neutral-700)' }}><strong>Tài liệu:</strong> {selectedReport.documentTitle || selectedReport.documentId}</p>
+              <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--neutral-700)' }}><strong>Lý do:</strong> {getReasonLabel(selectedReport.reason)}</p>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--neutral-700)' }}><strong>Mô tả:</strong> {selectedReport.description || 'Không có'}</p>
             </div>
 
             <div>

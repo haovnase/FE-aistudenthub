@@ -31,7 +31,7 @@ const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const role = user?.role?.replace('ROLE_', '') || 'USER';
-  const isAdmin = role === 'ADMIN';
+  const isAdmin = role === 'ADMIN' || role === 'MODERATOR';
 
   const renderUserBadge = (size = 14) => {
     if (user?.subscriptionTier === 'PREMIUM') {
