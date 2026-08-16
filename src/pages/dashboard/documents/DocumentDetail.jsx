@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Download, Edit, Trash2, ArrowLeft, FileText, Calendar, HardDrive, Folder, MessageSquare, Edit3 } from 'lucide-react';
+import { Download, Edit, Trash2, ArrowLeft, FileText, Calendar, HardDrive, Folder, MessageSquare, Edit3, History, RefreshCw, Eye } from 'lucide-react';
 import documentService from '../../../services/document.service';
 import folderService from '../../../services/folder.service';
 import Button from '../../../components/Button/Button';
@@ -45,6 +45,10 @@ const DocumentDetail = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   
+  const [versions, setVersions] = useState([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  
   const [folders, setFolders] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
@@ -59,12 +63,40 @@ const DocumentDetail = () => {
 
   useEffect(() => {
     fetchDocumentData();
+    fetchVersionsData();
     loadFolders();
     
     return () => {
       if (fileUrl) URL.revokeObjectURL(fileUrl);
     };
   }, [id]);
+
+  const fetchVersionsData = async () => {
+    setVersionsLoading(true);
+    try {
+      const data = await documentService.getVersions(id);
+      setVersions(data || []);
+    } catch (err) {
+      console.error("Failed to load versions", err);
+    } finally {
+      setVersionsLoading(false);
+    }
+  };
+
+  const refreshVersions = async () => {
+    setRefreshing(true);
+    try {
+      // Re-fetch document to get latest currentVersionId and other metadata
+      const data = await documentService.getById(id);
+      setDoc(data);
+      // Re-fetch versions
+      await fetchVersionsData();
+    } catch (err) {
+      console.error("Failed to refresh versions", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const loadFolders = async () => {
     try {
@@ -295,6 +327,60 @@ const DocumentDetail = () => {
               <Button variant="outline" style={{ width: '100%', borderColor: 'transparent', color: 'var(--neutral-500)', fontSize: '13px' }} onClick={() => setIsReportModalOpen(true)}>
                 <Flag size={14} style={{ marginRight: '6px' }} /> Báo cáo vi phạm
               </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Version History Section */}
+        <div className="version-history-section" style={{ marginTop: '24px', borderTop: '1px solid var(--neutral-200)', paddingTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--neutral-800)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+              <History size={16} color="var(--primary-600)" /> Lịch sử Phiên bản
+            </h3>
+            <button 
+              onClick={refreshVersions}
+              disabled={refreshing}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'var(--neutral-500)' }}
+              title="Làm mới lịch sử"
+            >
+              <RefreshCw size={14} className={refreshing ? 'spin' : ''} />
+            </button>
+          </div>
+
+          {versionsLoading && versions.length === 0 ? (
+            <div style={{ fontSize: '13px', color: 'var(--neutral-500)' }}>Đang tải lịch sử...</div>
+          ) : versions.length === 0 ? (
+            <div style={{ fontSize: '13px', color: 'var(--neutral-500)' }}>Chưa có lịch sử lưu phiên bản từ ONLYOFFICE.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {versions.map((ver) => {
+                const isCurrent = ver.id === doc.currentVersionId;
+                return (
+                  <div key={ver.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', backgroundColor: isCurrent ? 'var(--primary-50)' : 'var(--neutral-50)', border: `1px solid ${isCurrent ? 'var(--primary-200)' : 'var(--neutral-200)'}`, borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--neutral-800)' }}>Phiên bản {ver.versionNumber || '-'}</span>
+                        {isCurrent && <span style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'var(--primary-100)', color: 'var(--primary-700)', borderRadius: '10px', fontWeight: 600 }}>Hiện tại</span>}
+                      </div>
+                      <span style={{ fontSize: '12px', color: 'var(--neutral-500)' }}>
+                        {new Date(ver.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {ver.fileUrl && (
+                        <>
+                          <a href={ver.fileUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '6px', backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '6px', color: 'var(--neutral-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Xem file">
+                            <Eye size={14} />
+                          </a>
+                          <a href={ver.fileUrl} download style={{ padding: '6px', backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '6px', color: 'var(--neutral-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Tải xuống">
+                            <Download size={14} />
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

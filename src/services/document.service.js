@@ -142,6 +142,16 @@ const documentService = {
     // Note: If backend doesn't support this yet, this might return 404, but we implement frontend first
     const response = await api.post(`/documents/${id}/report`, payload);
     return response.data;
+  },
+
+  getVersions: async (id) => {
+    const response = await api.get(`/documents/${id}/versions`);
+    return response.data?.data;
+  },
+
+  getVersion: async (id, versionId) => {
+    const response = await api.get(`/documents/${id}/versions/${versionId}`);
+    return response.data?.data;
   }
 };
 
