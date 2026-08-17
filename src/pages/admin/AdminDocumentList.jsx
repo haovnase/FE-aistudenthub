@@ -32,7 +32,7 @@ const AdminDocumentList = () => {
     setIsProcessing(true);
     try {
       await adminService.approveDocument(id);
-      alert('Tài liệu đã được duyệt thành công!');
+      alert('Tài liệu đã được duyệt thành công (Toast)!');
       fetchDocuments();
     } catch (err) {
       alert('Lỗi duyệt tài liệu: ' + (err.response?.data?.message || err.message));
@@ -55,7 +55,7 @@ const AdminDocumentList = () => {
     setIsProcessing(true);
     try {
       await adminService.rejectDocument(docToReject.id, rejectReason);
-      alert('Đã từ chối tài liệu thành công !');
+      alert('Đã từ chối tài liệu thành công (Toast)!');
       setRejectModalOpen(false);
       setDocToReject(null);
       fetchDocuments();
@@ -165,9 +165,9 @@ const AdminDocumentList = () => {
   };
 
   const filteredDocuments = documents.filter(doc => {
-    const status = doc.approvalStatus || doc.status || (doc.visibility === 'PUBLIC' ? 'APPROVED' : 'PENDING');
-    if (activeTab === 'PENDING') return status === 'PENDING' || doc.processingStatus === 'PENDING';
-    if (activeTab === 'APPROVED') return status === 'APPROVED' ;
+    const status = doc.approvalStatus || doc.status || (doc.visibility === 'PUBLIC' ? 'APPROVED' : 'PRIVATE');
+    if (activeTab === 'PENDING') return doc.visibility === 'PUBLIC' && (status === 'PENDING' || doc.processingStatus === 'PENDING');
+    if (activeTab === 'APPROVED') return doc.visibility === 'PUBLIC' && status === 'APPROVED';
     if (activeTab === 'REJECTED') return status === 'REJECTED';
     return true;
   });
@@ -340,85 +340,91 @@ const AdminDocumentList = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredDocuments.map(doc => (
-                    <tr key={doc.id} style={{ borderBottom: '1px solid var(--neutral-100)' }}>
-                      <td style={{ padding: '1rem 0.5rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {getFileIcon(doc.fileType)}
-                        <span style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {doc.title}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.ownerName || doc.authorName || doc.uploadedBy || doc.user?.fullName || 'Người dùng vô danh'}</td>
-                      <td style={{ padding: '1rem 0.5rem' }}>
-                        <span style={{
-                          padding: '4px 10px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          backgroundColor: doc.visibility === 'PUBLIC' ? 'var(--success-50, #ecfdf5)' : 'var(--neutral-100)',
-                          color: doc.visibility === 'PUBLIC' ? 'var(--success-600, #059669)' : 'var(--neutral-600)'
-                        }}>
-                          {doc.visibility === 'PUBLIC' ? 'Public' : 'Private'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.subject || '-'}</td>
-                      <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>
-                        {doc.createdAt ? formatDistanceToNow(new Date(doc.createdAt), { addSuffix: true, locale: vi }) : '-'}
-                      </td>
-                      <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <button 
-                            title="Xem trước tài liệu (Admin Preview)"
-                            onClick={() => setPreviewDoc(doc)}
-                            style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--primary-100)', color: 'var(--primary-700)' }}
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button 
-                            title="Xem trạng thái xử lý"
-                            onClick={() => handleViewStatus(doc)}
-                            style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--neutral-100)', color: 'var(--neutral-700)' }}
-                          >
-                            <Activity size={16} />
-                          </button>
-                          {activeTab === 'PENDING' && (
-                            <>
+                  filteredDocuments.map(doc => {
+                    const docStatus = doc.approvalStatus || (doc.visibility === 'PUBLIC' ? 'APPROVED' : 'PRIVATE');
+                    const isPendingApproval = doc.visibility === 'PUBLIC' && (docStatus === 'PENDING' || doc.processingStatus === 'PENDING');
+                    const isApprovedPublic = doc.visibility === 'PUBLIC' && docStatus === 'APPROVED';
+
+                    return (
+                      <tr key={doc.id} style={{ borderBottom: '1px solid var(--neutral-100)' }}>
+                        <td style={{ padding: '1rem 0.5rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          {getFileIcon(doc.fileType)}
+                          <span style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {doc.title}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.ownerName || doc.authorName || doc.uploadedBy || doc.user?.fullName || 'Người dùng vô danh'}</td>
+                        <td style={{ padding: '1rem 0.5rem' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: doc.visibility === 'PUBLIC' ? 'var(--success-50, #ecfdf5)' : 'var(--neutral-100)',
+                            color: doc.visibility === 'PUBLIC' ? 'var(--success-600, #059669)' : 'var(--neutral-600)'
+                          }}>
+                            {doc.visibility === 'PUBLIC' ? 'Public' : 'Private'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>{doc.subject || '-'}</td>
+                        <td style={{ padding: '1rem 0.5rem', color: 'var(--neutral-600)' }}>
+                          {doc.createdAt ? formatDistanceToNow(new Date(doc.createdAt), { addSuffix: true, locale: vi }) : '-'}
+                        </td>
+                        <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button 
+                              title="Xem trước tài liệu (Admin Preview)"
+                              onClick={() => setPreviewDoc(doc)}
+                              style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--primary-100)', color: 'var(--primary-700)' }}
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button 
+                              title="Xem trạng thái xử lý"
+                              onClick={() => handleViewStatus(doc)}
+                              style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--neutral-100)', color: 'var(--neutral-700)' }}
+                            >
+                              <Activity size={16} />
+                            </button>
+                            {isPendingApproval && (
+                              <>
+                                <button 
+                                  title="Duyệt tài liệu (Approve)"
+                                  onClick={() => handleApprove(doc.id)}
+                                  style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--success-50)', color: 'var(--success-600)' }}
+                                >
+                                  <Globe size={16} />
+                                </button>
+                                <button 
+                                  title="Từ chối tài liệu (Reject)"
+                                  onClick={() => openRejectModal(doc)}
+                                  style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--warning-50)', color: 'var(--warning-600)' }}
+                                >
+                                  <AlertCircle size={16} />
+                                </button>
+                              </>
+                            )}
+                            {isApprovedPublic && (
                               <button 
-                                title="Duyệt tài liệu (Approve)"
-                                onClick={() => handleApprove(doc.id)}
-                                style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--success-50)', color: 'var(--success-600)' }}
-                              >
-                                <Globe size={16} />
-                              </button>
-                              <button 
-                                title="Từ chối tài liệu (Reject)"
-                                onClick={() => openRejectModal(doc)}
-                                style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--warning-50)', color: 'var(--warning-600)' }}
+                                title="Gỡ bỏ khẩn cấp (DMCA)"
+                                onClick={() => handleDmcaTakedown(doc.id)}
+                                style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--error-100)', color: 'var(--error-700)' }}
                               >
                                 <AlertCircle size={16} />
                               </button>
-                            </>
-                          )}
-                          {doc.visibility === 'PUBLIC' && doc.approvalStatus !== 'DMCA_TAKEN_DOWN' && (
+                            )}
                             <button 
-                              title="Gỡ bỏ khẩn cấp (DMCA)"
-                              onClick={() => handleDmcaTakedown(doc.id)}
-                              style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--error-100)', color: 'var(--error-700)' }}
+                              title="Xóa tài liệu"
+                              onClick={() => setDeleteDocId(doc.id)}
+                              style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--error-50)', color: 'var(--error-600)' }}
                             >
-                              <AlertCircle size={16} />
+                              <Trash2 size={16} />
                             </button>
-                          )}
-                          <button 
-                            title="Xóa tài liệu"
-                            onClick={() => setDeleteDocId(doc.id)}
-                            style={{ padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'var(--error-50)', color: 'var(--error-600)' }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
