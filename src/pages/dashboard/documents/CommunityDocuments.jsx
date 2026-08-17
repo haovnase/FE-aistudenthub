@@ -341,7 +341,7 @@ const CommunityDocuments = () => {
                       <span className="doc-size" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         {formatFileSize(doc.fileSize)}
                         <span style={{ color: 'var(--primary-600)', backgroundColor: 'var(--primary-50)', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                          {doc.ownerName || doc.authorName || doc.uploadedBy || doc.user?.fullName || 'Người dùng vô danh'}
+                          {doc.creatorName || doc.authorName || doc.uploadedBy || doc.user?.fullName || 'Người dùng vô danh'}
                         </span>
                       </span>
                       <div className="doc-actions" style={{ display: 'flex', gap: '16px', color: 'var(--primary-600)', fontSize: '13px', fontWeight: 600 }}>
