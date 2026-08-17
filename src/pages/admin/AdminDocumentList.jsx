@@ -32,7 +32,7 @@ const AdminDocumentList = () => {
     setIsProcessing(true);
     try {
       await adminService.approveDocument(id);
-      alert('Tài liệu đã được duyệt thành công (Toast)!');
+      alert('Tài liệu đã được duyệt thành công!');
       fetchDocuments();
     } catch (err) {
       alert('Lỗi duyệt tài liệu: ' + (err.response?.data?.message || err.message));
@@ -55,7 +55,7 @@ const AdminDocumentList = () => {
     setIsProcessing(true);
     try {
       await adminService.rejectDocument(docToReject.id, rejectReason);
-      alert('Đã từ chối tài liệu thành công (Toast)!');
+      alert('Đã từ chối tài liệu thành công !');
       setRejectModalOpen(false);
       setDocToReject(null);
       fetchDocuments();
