@@ -72,7 +72,7 @@ const AdminReportList = () => {
     if (!decision) return;
     setIsProcessing(true);
     try {
-      await adminService.resolveReport(selectedReport.id, decision, moderatorNote);
+      await adminService.resolveReport(selectedReport.reportId, decision, moderatorNote);
       setResolveModalOpen(false);
       setSelectedReport(null);
       fetchReports();
@@ -254,7 +254,7 @@ const AdminReportList = () => {
                   </tr>
                 ) : (
                   reports.map(report => (
-                    <tr key={report.id} style={{ borderBottom: '1px solid var(--neutral-100)' }}>
+                    <tr key={report.reportId} style={{ borderBottom: '1px solid var(--neutral-100)' }}>
                       <td style={{ padding: '1rem 0.5rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <FileText size={20} color="var(--primary-500)" />
                         <span style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
