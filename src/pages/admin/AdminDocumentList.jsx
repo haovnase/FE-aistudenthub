@@ -167,7 +167,7 @@ const AdminDocumentList = () => {
   const filteredDocuments = documents.filter(doc => {
     const status = doc.approvalStatus || doc.status || (doc.visibility === 'PUBLIC' ? 'APPROVED' : 'PENDING');
     if (activeTab === 'PENDING') return status === 'PENDING' || doc.processingStatus === 'PENDING';
-    if (activeTab === 'APPROVED') return status === 'APPROVED' || doc.visibility === 'PUBLIC';
+    if (activeTab === 'APPROVED') return status === 'APPROVED' ;
     if (activeTab === 'REJECTED') return status === 'REJECTED';
     return true;
   });
