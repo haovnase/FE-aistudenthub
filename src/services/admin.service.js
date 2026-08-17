@@ -113,12 +113,12 @@ const adminService = {
   },
 
   approveDocument: async (id) => {
-    const response = await api.post(`/admin/documents/${id}/approve`);
+    const response = await api.post(`/moderator/documents/approve`, { documentId: id });
     return response.data;
   },
 
   rejectDocument: async (id, reason) => {
-    const response = await api.post(`/admin/documents/${id}/reject`, { reason });
+    const response = await api.post(`/moderator/documents/reject`, { documentId: id, reason });
     return response.data;
   },
 
