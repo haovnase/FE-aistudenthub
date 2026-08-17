@@ -122,7 +122,7 @@ const AdminReportList = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: filterStatus === 'PENDING' ? 'var(--warning-500)' : '#ffffff',
+            backgroundColor: filterStatus === 'PENDING' ? 'var(--primary-600)' : '#ffffff',
             color: filterStatus === 'PENDING' ? '#ffffff' : 'var(--neutral-700)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             whiteSpace: 'nowrap'
@@ -141,7 +141,7 @@ const AdminReportList = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: filterStatus === 'RESOLVED' ? 'var(--error-600)' : '#ffffff',
+            backgroundColor: filterStatus === 'RESOLVED' ? 'var(--primary-600)' : '#ffffff',
             color: filterStatus === 'RESOLVED' ? '#ffffff' : 'var(--neutral-700)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             whiteSpace: 'nowrap'
@@ -160,7 +160,7 @@ const AdminReportList = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: filterStatus === 'DISMISSED' ? 'var(--neutral-500)' : '#ffffff',
+            backgroundColor: filterStatus === 'DISMISSED' ? 'var(--primary-600)' : '#ffffff',
             color: filterStatus === 'DISMISSED' ? '#ffffff' : 'var(--neutral-700)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             whiteSpace: 'nowrap'

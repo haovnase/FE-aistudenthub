@@ -93,7 +93,7 @@ const AdminDocumentPreviewModal = ({ isOpen, onClose, document, onDelete, onDmca
                 [Admin Preview] {document.title}
               </h3>
               <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: 'var(--neutral-500)' }}>
-                Người đăng: <strong>{document.ownerName || document.authorName || 'Người dùng vô danh'}</strong> | 
+               Người đăng: <strong>{document.uploaderFullName || document.ownerName || document.authorName || document.uploaderEmail || 'Người dùng vô danh'}</strong> |
                 {document.reviewerName && <span> Kiểm duyệt bởi: <strong>{document.reviewerName}</strong> | </span>}
                 Chế độ: <strong style={{ color: document.visibility === 'PUBLIC' ? 'var(--success-600)' : 'var(--neutral-600)' }}>{document.visibility || 'PUBLIC'}</strong>
                 {document.dmcaVerified && (
