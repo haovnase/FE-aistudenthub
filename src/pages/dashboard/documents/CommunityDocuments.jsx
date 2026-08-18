@@ -52,7 +52,7 @@ const CommunityDocuments = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filterOptions, setFilterOptions] = useState({ subjects: [], majors: [] });
+  const [filterOptions, setFilterOptions] = useState({ subjects: [], majors: [], documentTypes: [] });
 
   useEffect(() => {
     loadFilterOptions();
@@ -87,11 +87,12 @@ const CommunityDocuments = () => {
 
   const loadFilterOptions = async () => {
     try {
-      const options = await documentService.getFilterOptions();
+      const options = await documentService.getPublicFilterOptions();
       if (options) {
         setFilterOptions({
-          subjects: options.publicSubjects || [],
-          majors: options.publicMajors || []
+          subjects: options.subjects || [],
+          majors: options.majors || [],
+          documentTypes: options.documentTypes || []
         });
       }
     } catch (error) {
@@ -246,11 +247,10 @@ const CommunityDocuments = () => {
             onChange={(e) => setFilters(prev => ({ ...prev, documentType: e.target.value }))}
           >
             <option value="">Tất cả Định dạng</option>
-            <option value="PDF">PDF</option>
-            <option value="DOCX">Word (DOCX)</option>
-            <option value="PPTX">PowerPoint (PPTX)</option>
-            <option value="XLSX">Excel (XLSX)</option>
-            <option value="CODE">Code/Khác</option>
+            {filterOptions.documentTypes.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+            
           </select>
           
           <select
