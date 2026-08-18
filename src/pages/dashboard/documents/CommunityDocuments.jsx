@@ -250,6 +250,7 @@ const CommunityDocuments = () => {
             {filterOptions.documentTypes.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
+            
           </select>
           
           <select
